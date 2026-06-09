@@ -831,7 +831,7 @@
 "indication": "Wet (neovascular) age-related macular degeneration",
 "application_type": "BLA",
 "pdufa_date": "2025-08-27",
-"pdufa_matches_market_date": "yes",
+"pdufa_matches_market_date": "no",
 "review_type": "standard",
 "designations": "none",
 "prior_crl": "yes",
@@ -847,7 +847,7 @@
 "eventually_approved": "pending",
 "eventually_approved_date": "pending",
 "source_url": "https://ir.outlooktherapeutics.com/news-releases/news-release-details/outlook-therapeutics-provides-regulatory-update-us-food-and-0; https://www.sec.gov/Archives/edgar/data/0001649989/000110465923096669/tm2325118d1_ex99-1.htm; https://www.globenewswire.com/news-release/2026/06/01/3304397/0/en/outlook-therapeutics-announces-resubmission-of-biologics-license-application-to-u-s-fda-for-ons-5010-lytenava-bevacizumab-vikg.html",
-"enrichment_notes": "Multiple CRLs (Aug 2023 CMC; Aug 2025; then 2025-12-31). Fully domestic US supply chain (drug substance at Outlook/Oncobiologics, Cranbury NJ) -> inspection_location domestic. Approved in EU/UK. Note the 2025-12-31 CRL was reportedly efficacy-based, not CMC. eventually_approved updated no->pending: Outlook RESUBMITTED the BLA 2026-06-01, so a decision is again pending. crl_date approximate."
+"enrichment_notes": "Multiple CRLs (Aug 2023 CMC; Aug 2025; then 2025-12-31). Fully domestic US supply chain (drug substance at Outlook/Oncobiologics, Cranbury NJ) -> inspection_location domestic. Approved in EU/UK. Note the 2025-12-31 CRL was reportedly efficacy-based, not CMC. eventually_approved updated no->pending: Outlook RESUBMITTED the BLA 2026-06-01, so a decision is again pending. crl_date approximate. Market resolve-by is the Aug-31 deadline; true PDUFA was 2025-08-27, so pdufa_matches_market_date=no."
 },
 {
 "slug": "fda-approves-lenz-therapeutics-lnz100-for-presbyopia-by-august-31",
@@ -993,7 +993,7 @@
 "risk_category": "Timeline bet",
 "outcome": "pending",
 "outcome_date": "pending",
-"outcome_reason": "NDA submission anticipated ~late May 2026; no PDUFA publicly assigned; 2026 approval is a timeline bet on the National Priority Voucher pilot.",
+"outcome_reason": "Open; as of 2026-06-09 NO NDA is on file (company stated intent to submit under the National Priority Voucher program), so no PDUFA exists — a 2026 approval is a timeline bet.",
 "eventually_approved": "pending",
 "eventually_approved_date": "pending",
 "source_url": "https://ir.revmed.com/news-releases/news-release-details/revolution-medicines-statement-fda-expanded-access-authorization; https://www.geneonline.com/revolution-medicines-ships-daraxonrasib-fda-submission-anticipated-by-may-30-2026/",

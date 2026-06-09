@@ -158,6 +158,20 @@ slate — see the risk-category breakdown.
   everything.
 - **Daily-fidelity limitation.** Intra-day blindsides are invisible in the daily
   series; `surprise` is engineered around this (§4).
+- **Sparse price histories.** A few short-lived markets have very few daily
+  points — 3 resolved markets have only a single daily price point (Tzield,
+  clesrovimab, vepdegestrant) and 10 lack a point a full 7 days before
+  resolution — so their `prob_7d`/`prob_1d` are legitimately blank. Calibration
+  stats are computed over the markets that have the relevant point (n reported
+  alongside each).
+- **`pdufa_date` vs `pdufa_matches_market_date`.** `pdufa_date` is the FDA
+  action/goal date from the cited source; the flag is `yes` when it aligns with
+  the market resolve-by within a day or two (incl. weekend rolls). A `no` can mean
+  three different things — a genuine clerical mismatch (ONS-5010's market used the
+  "by August 31" deadline vs. a 2025-08-27 PDUFA), a **PDUFA extension** (Sarclisa,
+  EYLEA HD), or an **early approval** where `pdufa_date` records the action date a
+  few days inside the window (Enhertu, the CSU Dupixent) — so read `outcome` /
+  `outcome_date` for what actually happened, not just the flag.
 - **Enrichment is point-in-time research.** Dates and CRL reason classes are from
   the cited primary sources; a handful of inspection details were not publicly
   disclosed and are marked `unknown`. `crl_date` for two refiles is approximate

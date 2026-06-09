@@ -52,15 +52,35 @@ reproducibility check don't re-hit the API; use `--refresh` to force a re-pull.
 ## Figures
 
 `python make_figures.py` reads `fda_markets_processed.csv` + the `price_history/`
-series and writes PNGs to `figures/`:
+series and writes these PNGs to `figures/`.
 
-| Figure | Shows |
-|---|---|
-| `fig1_risk_inversion.png` | Mean Yes price the market charged vs. realized on-time approval rate, per `risk_category` — the headline mis-pricing (clean reviews underpriced at ~0.72→100%; CMC refiles ~0.35→11%). |
-| `fig2_calibration.png` | Reliability curve: predicted `prob_1d` vs. observed approval frequency, annotated with mean Brier. |
-| `fig3_surprises.png` | Yes-price trajectories of the blindside markets, aligned to days-before-resolution. |
-| `fig4_open_slate.png` | Open markets' `price_vs_baserate`, colored by risk category. |
-| `fig5_depth.png` | Market thinness — top-holder concentration vs. holder count, single-order moves highlighted. |
+**The mis-pricing, in one chart** — what the market charged ~7 days out vs. what
+actually happened, by regulatory risk class. Clean first-cycle reviews were
+*under*-priced (0.72 → approved 100% of the time); CMC/manufacturing refiles were
+charged 0.35 but approved on time only 11% of the time:
+
+![Price charged vs. realized on-time approval rate, by risk class](figures/fig1_risk_inversion.png)
+
+**Calibration of the 1-day-out price** — predicted Yes probability vs. observed
+approval frequency (mean Brier ≈ 0.136):
+
+![1-day-out calibration curve](figures/fig2_calibration.png)
+
+**Blindsides** — markets that were confident *and wrong* going into the decision
+(e.g. TLX250 riding ~80% into a CRL; Ketamine sitting ~20% before a surprise
+approval), aligned to days-before-resolution:
+
+![Blindside price trajectories](figures/fig3_surprises.png)
+
+**Open slate vs. the base rate** — current Yes price minus the 0.835 FDA on-time
+base rate, colored by risk category (negative = priced below history):
+
+![Open slate vs. base rate](figures/fig4_open_slate.png)
+
+**Market thinness** — top-holder concentration vs. reported holder count, point
+size ∝ trade count, single-order moves highlighted:
+
+![Market thinness scatter](figures/fig5_depth.png)
 
 ## Data sources (all public)
 

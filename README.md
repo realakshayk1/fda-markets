@@ -56,8 +56,8 @@ series and writes these PNGs to `figures/`.
 
 **The mis-pricing, in one chart** — what the market charged ~7 days out vs. what
 actually happened, by regulatory risk class. Clean first-cycle reviews were
-*under*-priced (0.72 → approved 100% of the time); CMC/manufacturing refiles were
-charged 0.35 but approved on time only 11% of the time:
+*under*-priced (0.72 → approved 100% of the time, n=18); CMC/manufacturing-gated
+reviews were charged 0.36 but approved on time only **1 of 8 times (12.5%)**:
 
 ![Price charged vs. realized on-time approval rate, by risk class](figures/fig1_risk_inversion.png)
 
@@ -102,19 +102,41 @@ substance-list technicality (see `methodology.md`).
 
 ## Headline result
 
-Splitting resolved markets by regulatory risk class exposes a sharp gradient the
-market only partly priced:
+Splitting resolved markets by regulatory risk class exposes a sharp gradient
+(mean Yes price the market charged ~7 days before resolution vs. the realized
+on-time approval rate):
 
-| risk_category | mean Yes price charged | on-time approval rate |
+| risk_category | mean price charged | on-time approval rate |
 |---|---|---|
-| Clean desk review | 0.80 | **18 / 18 = 100%** |
-| Oncology sNDA | 0.87 | 2 / 2 = 100% |
-| CMC/manufacturing refile | 0.37 | **1 / 9 = 11%** |
-| Timeline bet | 0.33 | 0 / 4 = 0% |
+| Clean desk review | 0.72 | **18 / 18 = 100%** |
+| Oncology sNDA | 0.90 | 2 / 2 = 100% |
+| CMC/manufacturing refile | 0.36 | **1 / 8 = 12.5%** |
+| Clinical/efficacy | 0.39 | 0 / 2 = 0% |
+| Timeline bet | 0.08 | 0 / 3 = 0% |
 
-Clean first-cycle reviews approved on time every single time; CMC/manufacturing
-refiles almost never did. See `summary.py` output and the findings in the
-project notes.
+Clean first-cycle reviews approved on time every time; CMC-gated reviews almost
+never did. Of the 8 resolved CRLs, **6 were CMC/manufacturing-driven** (only
+Capricor and PTC's vatiquinone were efficacy CRLs) — manufacturing, not data, is
+what sinks these.
 
-> Data snapshot: 2026-06-09. Markets resolve continuously, so re-running will
-> pick up newly resolved contracts and updated open-market prices.
+**The sharper thread — the market may be forgetting its own lesson.**
+Historically the market priced CMC/manufacturing refiles at ~0.36 and they
+approved on time just **1 of 8 times (12.5%)** — and the two it priced
+*confidently high* (TLX250 at ~0.80, GTx-104 at ~0.71) both took CRLs. Yet the
+**three open CMC refiles sit at 0.72–0.77** (Oclaiz, Arcalyst, Unicycive's OLC) —
+more than double the historical average, priced as if that 12.5% track record
+didn't exist. Caveats: small n (8), and each open refile may genuinely have fixed
+its specific CMC issue — but the base rate says be skeptical. (CMC problems are
+usually *curable* — 2 of the 8 were eventually approved, 6 resubmitted and
+pending — just rarely on the market's by-this-date timeline, which is exactly why
+these contracts resolve No.)
+
+**A clean within-drug case study:** Unicycive's oxylanthanum carbonate appears
+twice — the 2025 market resolved No on a single-deficiency CMC CRL; the 2026
+market is the *refile* of the same drug, still pending. Same molecule, two
+cycles.
+
+> Data snapshot: 2026-06-09 (open-market prices re-pulled at write time). Markets
+> resolve continuously, so re-running picks up newly resolved contracts and
+> updated prices. Every regulatory classification above is verified against
+> primary sources cited in `enrichment_data.json`.

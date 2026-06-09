@@ -38,6 +38,7 @@ RC_COLORS = {
     "Clean desk review": "#2ca02c",
     "Oncology sNDA": "#1f77b4",
     "CMC/manufacturing refile": "#d62728",
+    "Clinical/efficacy": "#e377c2",
     "Timeline bet": "#ff7f0e",
 }
 

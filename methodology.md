@@ -53,19 +53,36 @@ releases, FDA.gov, Endpoints, Fierce, BioPharma Dive, drugs.com, HCPLive, OncLiv
 | `pdufa_matches_market_date` | yes/no — flags cases where the market's resolve-by ≠ true PDUFA (e.g. a Saturday PDUFA rolling to Monday) |
 | `review_type` | standard / priority |
 | `designations` | Breakthrough / Fast Track / QIDP / Orphan / Priority Review Voucher / Accelerated Approval / RMAT |
-| `prior_crl` | **yes/no — the thesis variable** |
+| `prior_crl` | **yes/no — prior-cycle CRL baggage (refiles only)** |
 | `crl_date`, `crl_reason_class` | CMC/manufacturing · clinical/efficacy · safety · nonclinical |
 | `manufacturing_inspection_required`, `inspection_location` | yes/no · domestic/foreign |
 | `adcom_scheduled` | no / date |
-| `risk_category` | Clean desk review · CMC/manufacturing refile · Oncology sNDA · Timeline bet |
+| `risk_category` | Clean desk review · CMC/manufacturing refile · Clinical/efficacy · Oncology sNDA · Timeline bet |
 | `outcome` (resolved) | Approved / CRL / Delay / Withdrawn + `outcome_date`, `outcome_reason` |
 | `eventually_approved` | yes / no / pending (+ date) |
 
-> `prior_crl` records whether **that application** had been issued a CRL *before
-> the review cycle the market covers*. A first-cycle CRL is captured in `outcome`
-> (=`CRL`), not `prior_crl`. The two open Unicycive markets are the clean
-> illustration: the June-2025 market resolved `No` (first-cycle CMC CRL); the
-> June-2026 market is the **refile** of that same drug, so `prior_crl = yes`.
+> **`prior_crl`** records whether the application carried a CRL from a *prior*
+> review cycle. A first-cycle CRL is the market's `outcome` (=`CRL`), **not**
+> `prior_crl` — so `prior_crl = no` for first-cycle CRLs (GTx-104, CTx-1301,
+> UX111, Unicycive-OLC, Capricor, vatiquinone) and `yes` only for genuine refiles
+> (Telix — its Aug-2025 CRL was its *second*; Outlook; Oclaiz; Tebipenem; the
+> 2026 Unicycive refile; KETARx). The two Unicycive markets are the clean
+> illustration: the 2025 market resolved `No` on a first-cycle CMC CRL; the 2026
+> market is the **refile** of the same drug.
+>
+> **`crl_reason_class`** is the primary deficiency class of the CRL *operative for
+> this market* — the prior CRL for refiles, or this cycle's CRL for first-cycle
+> CRL resolutions — so it is populated for every CRL-touched market, not only
+> refiles. Of the 8 resolved CRLs, 6 are CMC/manufacturing and 2 are
+> clinical/efficacy.
+>
+> **`risk_category`** classifies the bet by its gating risk. `CMC/manufacturing
+> refile` is CMC-gated reviews (refiles *and* first-cycle CMC CRLs);
+> `Clinical/efficacy` is reviews gated on efficacy data (e.g. Capricor,
+> vatiquinone, Tebipenem); `Timeline bet` is by-deadline timing risk with no firm
+> imminent decision (the year-end markets, plus oncology reviews that hinged on
+> whether the FDA would rule by the date). Every label is verified against the
+> primary sources cited in `enrichment_data.json`.
 
 ## 4. Computed metrics (`process_markets.py`)
 
@@ -183,10 +200,10 @@ regulatory enrichment, computed metrics, and market depth.
 | `application_type` | NDA / sNDA / BLA / sBLA / 505(b)(2) / ANDA / biosimilar / manufacturing-supplement. |
 | `pdufa_date`, `pdufa_matches_market_date` | True FDA action date; whether it equals the market resolve-by date. |
 | `review_type`, `designations` | standard/priority; expedited designations (Breakthrough, Fast Track, …). |
-| `prior_crl`, `crl_date`, `crl_reason_class` | Prior-cycle CRL flag (thesis variable), its date, and class (CMC/manufacturing · clinical/efficacy · safety · nonclinical). |
+| `prior_crl`, `crl_date`, `crl_reason_class` | Prior-cycle CRL flag (refiles only); the operative CRL's date and primary class (CMC/manufacturing · clinical/efficacy · safety · nonclinical — populated for every CRL-touched market). |
 | `manufacturing_inspection_required`, `inspection_location` | yes/no/unknown; domestic/foreign. |
 | `adcom_scheduled` | no / AdCom date. |
-| `risk_category` | Clean desk review · CMC/manufacturing refile · Oncology sNDA · Timeline bet. |
+| `risk_category` | Clean desk review · CMC/manufacturing refile · Clinical/efficacy · Oncology sNDA · Timeline bet. |
 | `outcome`, `outcome_date`, `outcome_reason` | Resolved outcome (Approved/CRL/Delay/Withdrawn) + date + one-line reason. |
 | `eventually_approved`, `eventually_approved_date` | Whether the drug was ever approved (may be after the market date). |
 | `source_url`, `enrichment_notes` | Primary citation(s) and research notes. |

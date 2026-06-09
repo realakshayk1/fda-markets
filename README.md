@@ -16,17 +16,19 @@ build_enrichment.py  →  enrichment.csv               (from enrichment_data.jso
 enrich_markets.py    →  fda_markets_enriched.csv      (raw + regulatory metadata, joined on slug)
 process_markets.py   →  fda_markets_processed.csv     (+ price histories + computed metrics)
 summary.py           →  console summary + findings
+make_figures.py      →  figures/*.png                 (analysis charts)
 ```
 
 Run it end to end:
 
 ```bash
-pip install -r requirements.txt        # pandas requests tqdm
+pip install -r requirements.txt        # pandas requests tqdm matplotlib
 python fetch_markets.py
 python build_enrichment.py
 python enrich_markets.py
 python process_markets.py              # caches price series; pass --refresh to re-download
 python summary.py
+python make_figures.py                 # writes PNGs to figures/
 ```
 
 `process_markets.py` reads `fda_markets_enriched.csv` if present (else the raw
@@ -43,8 +45,22 @@ reproducibility check don't re-hit the API; use `--refresh` to force a re-pull.
 | `price_history/<slug>.csv` | Daily (1440-min) Yes-price series, full life of each market. |
 | `price_history_fine/<slug>.csv` | 10-min series for sharp movers (single-order detection). |
 | `market_depth.csv` | Per-market liquidity/concentration from `/trades`+`/holders` (trades, unique traders, largest trade, top holders, top-holder %). |
+| `figures/*.png` | Analysis charts from `make_figures.py` (see **Figures** below). |
 | `enrichment_data.json` | Source of the enrichment layer — cited, with research notes. |
 | `methodology.md` | Field definitions, resolution semantics, base rate, caveats. |
+
+## Figures
+
+`python make_figures.py` reads `fda_markets_processed.csv` + the `price_history/`
+series and writes PNGs to `figures/`:
+
+| Figure | Shows |
+|---|---|
+| `fig1_risk_inversion.png` | Mean Yes price the market charged vs. realized on-time approval rate, per `risk_category` — the headline mis-pricing (clean reviews underpriced at ~0.72→100%; CMC refiles ~0.35→11%). |
+| `fig2_calibration.png` | Reliability curve: predicted `prob_1d` vs. observed approval frequency, annotated with mean Brier. |
+| `fig3_surprises.png` | Yes-price trajectories of the blindside markets, aligned to days-before-resolution. |
+| `fig4_open_slate.png` | Open markets' `price_vs_baserate`, colored by risk category. |
+| `fig5_depth.png` | Market thinness — top-holder concentration vs. holder count, single-order moves highlighted. |
 
 ## Data sources (all public)
 

@@ -2,3 +2,9 @@ __pycache__/
 *.pyc
 .venv/
 .claude/
+
+# Oracle article deliverable + its bespoke charts (not core repo)
+OPENING_LINE*.docx
+OPENING_LINE*.pdf
+article_figures.py
+figures/article/

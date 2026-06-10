@@ -921,8 +921,8 @@
 "outcome_reason": "PDUFA 2026-06-19 after today (2026-06-09); no FDA action yet.",
 "eventually_approved": "pending",
 "eventually_approved_date": "pending",
-"source_url": "https://investors.kiniksa.com/node/12651/pdf; https://www.stocktitan.net/sec-filings/KNSA/10-q-kiniksa-pharmaceuticals-international-plc-quarterly-earnings-rep-c506fc494ddd.html",
-"enrichment_notes": "sBLA to transfer drug-substance manufacturing to Samsung Biologics (South Korea = foreign inspection). Pure CMC-comparability bet; no clinical/indication change."
+"source_url": "https://polymarket.com/event/fda-approves-kiniksa-regeneron-arcalyst-06-19-2026 (market resolution rules — premise); https://investors.kiniksa.com/node/12651/pdf; https://www.stocktitan.net/sec-filings/KNSA/10-q-kiniksa-pharmaceuticals-international-plc-quarterly-earnings-rep-c506fc494ddd.html",
+"enrichment_notes": "Manufacturing CDMO technology transfer to Samsung Biologics (drug-substance plants in South Korea = foreign inspection); a CMC-comparability bet, no clinical/indication change. SOURCE-VALIDITY NOTE (audited 2026-06-10): the premise is documented by the Polymarket market's own resolution rules (Gamma event 556033: resolves on 'FDA approval ... related to the technology transfer to Samsung Biologics as a replacement CDMO,' stated expected decision date 2026-06-19), and the transfer itself is real (Kiniksa Q1 2025 disclosed it 'in progress'). BUT no FDA-published PDUFA notice or Kiniksa press release independently confirms the 2026-06-19 action date or the exact filing type (application_type='sBLA' is an inference; it may be a manufacturing supplement) — that date is the market's stated expectation, not independently corroborated. prior_crl=no is consistent (no rilonacept CRL ever reported). Treat the PDUFA date as market-stated, not FDA-confirmed."
 },
 {
 "slug": "fda-approves-arcutis-zoryve-cream-06-29-2026",

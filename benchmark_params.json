@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "frozen_on": "2026-06-09",
+    "estimated_from": "population/fda_reference_rates.csv",
+    "design": "Pre-registered. EVERY coefficient is either (a) directly cited to a published FDA statistic, or (b) arithmetically derived from cited statistics. Nothing is a judgment magnitude. Modifiers for which no published rate exists (post-CRL resubmission success, gene/cell-specific rates, AdCom->extension effect, breakthrough causal effect) were INTENTIONALLY OMITTED rather than guessed — see _meta.omitted. Coefficients are set before any residual against the 33 Polymarket markets is computed; audit.py §12 asserts the freeze and the leakage-safety.",
+    "form": "logit(p_ever) = base + sum(applicable approval_modifiers_logodds);  p_on_time = 1 - extension_rate;  fair = p_ever * p_on_time (dated markets); abstains (N/A) on open-ended year markets.",
+    "omitted": {
+      "prior_crl_refile": "No published post-CRL resubmission approval rate exists (FDA does not report it; Class 2 resubmission goals are timelines, not approval rates). Omitted rather than guessed. The refile signal is handled separately in the validity layer from the real market data (prior_crl axis), not modeled here.",
+      "breakthrough_fasttrack": "Published evidence attributes higher approval rates of expedited drugs to selection bias, not a causal effect; no defensible causal magnitude. Omitted.",
+      "modality_505b2": "No published 505(b)(2)-specific first-cycle approval rate found. Omitted.",
+      "adcom_extension": "No published AdCom->PDUFA-extension rate found. Omitted."
+    }
+  },
+
+  "base_first_cycle_approval": {
+    "p": 0.84,
+    "logodds": 1.6582,
+    "ci": [0.80, 0.86],
+    "source_url": "https://www.fda.gov/drugs/novel-drug-approvals-fda/novel-drug-approvals-2025; https://www.lachmanconsultants.com/2024/01/fda-novel-drug-report-for-2023-cites-84-first-cycle-approvals-what-about-generic-drugs/",
+    "note": "CDER first-cycle approval of novel drugs = 46/55 (84%) in 2023; 39/46 (85%) in 2017. Base = P(first action is an approval). DIRECTLY CITED."
+  },
+
+  "approval_modifiers_logodds": {
+    "priority_review": {
+      "value": 0.0,
+      "ci": [-0.05, 0.10],
+      "source_url": "https://www.fda.gov/industry/prescription-drug-user-fee-amendments/independent-evaluation-fdas-first-cycle-review-performance-retrospective-analysis-final-report-text",
+      "note": "Set to 0 on approval probability: published evidence attributes priority review's higher observed approval rate to selection bias, not causation. Real effect is on the review CLOCK (6 vs 10 months), not approval odds. CITED (as a null)."
+    },
+    "modality_novel_mechanism": {
+      "value": -1.0828,
+      "ci": [-1.45, -0.55],
+      "applies_to": "gene_cell",
+      "source_url": "https://www.fda.gov/media/74352/download",
+      "note": "DERIVED, not guessed: logit(0.64) - logit(0.84) = -1.0828, from the FDA First-Cycle Review evaluation (novel mechanism of action 64% first-cycle approval vs 84% overall). Applied to gene/cell therapies as a documented proxy for 'novel mechanism' (gene/cell is a subset of novel-MoA). CI from the 0.55-0.72 band on the 64% figure."
+    }
+  },
+
+  "extension_rate": {
+    "value": 0.06,
+    "ci": [0.04, 0.08],
+    "source_url": "https://www.fda.gov/about-fda/fda-track-agency-wide-program-performance/fda-track-prescription-drug-user-fee-act-pdufa-performance-reports; https://www.fda.gov/media/191112/download",
+    "note": "P(first action slips past the PDUFA goal date). FDA meets 92-96% of goal dates under PDUFA VII -> 4-8% slip; midpoint 6%. DIRECTLY CITED."
+  },
+
+  "modality_rules": {
+    "gene_cell": ["gene therapy", "gene-therapy", "aav", "car-t", "cell therapy", "cell-therapy", "lentiviral", "crispr"]
+  }
+}

@@ -62,7 +62,9 @@ jobs:
           python insights.py
 
       - name: Validity + reproducibility gate (must pass before committing)
-        run: python audit.py | tee /tmp/audit.log && grep -q "checks failed: 0" /tmp/audit.log
+        run: |
+          python audit.py | tee /tmp/audit.log
+          grep -q "checks failed: 0" /tmp/audit.log
 
       - name: Commit refreshed data
         run: |
@@ -70,8 +72,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
-            git commit -m "chore: daily data refresh ($(date -u +%Y-%m-%d))"
-            git push
+            git commit -m "chore: daily data refresh $(date -u +%Y-%m-%d)"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           else
             echo "No changes to commit."
           fi

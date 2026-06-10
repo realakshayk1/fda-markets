@@ -1,0 +1,77 @@
+name: Daily data refresh
+
+# Re-runs the full pipeline against the live Polymarket APIs once a day, then
+# commits any changed data/figures. This is what makes the repo "re-runnable
+# through git": GitHub runs it on a schedule, and the refreshed dataset lands as
+# a commit. You can also trigger it by hand from the Actions tab.
+#
+# CAVEAT — the regulatory-enrichment layer is HAND-curated. This job refreshes
+# prices, metrics, figures, and the benchmark/edge outputs automatically, but a
+# newly-resolved market's regulatory `outcome` (Approved / CRL / Delay) in
+# enrichment_data.json still needs a manual update with a cited source. The job
+# will flag any market whose live close-state changed since the last commit.
+
+on:
+  schedule:
+    - cron: "0 13 * * *"   # daily ~13:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Flag any newly-resolved markets (manual enrichment may be needed)
+        run: |
+          python fetch_markets.py
+          python - <<'PY'
+          import pandas as pd, subprocess
+          new = pd.read_csv("fda_markets_raw.csv", dtype=str)
+          old_csv = subprocess.run(["git","show","HEAD:fda_markets_raw.csv"],
+                                   capture_output=True, text=True).stdout
+          import io; old = pd.read_csv(io.StringIO(old_csv), dtype=str)
+          om = {r["slug"]: r for _, r in old.iterrows()}
+          flips = [r["slug"] for _, r in new.iterrows()
+                   if str(r.get("closed")).lower() != str(om.get(r["slug"], {}).get("closed", "")).lower()]
+          if flips:
+              print("::warning::Markets changed close-state since last commit; "
+                    "update enrichment_data.json outcomes with a cited source: " + ", ".join(flips))
+          else:
+              print("No close-state changes since last commit.")
+          PY
+
+      - name: Run the pipeline
+        run: |
+          python build_enrichment.py
+          python enrich_markets.py
+          python process_markets.py --refresh
+          python make_figures.py
+          python benchmark.py
+          python edge.py
+          python insights.py
+
+      - name: Validity + reproducibility gate (must pass before committing)
+        run: python audit.py | tee /tmp/audit.log && grep -q "checks failed: 0" /tmp/audit.log
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore: daily data refresh ($(date -u +%Y-%m-%d))"
+            git push
+          else
+            echo "No changes to commit."
+          fi

@@ -256,20 +256,29 @@ def main():
         check("pdufa 'matches' are within 4d of market date", True)
 
     print("\n== 8. Docs vs data ==")
+    # The README is a data-pipeline doc and deliberately states no conclusions;
+    # the contaminated cohort facts live in LIMITATIONS.md/FINDINGS.md with the
+    # leakage framing. So this section asserts the DATA facts directly (for
+    # reproducibility) and checks that the doc which DOES discuss them carries the
+    # leakage caveat — it no longer string-matches conclusions in the README.
     closed = proc[proc["is_closed"]]
     drug_res = closed[~closed["slug"].isin(THEMATIC)]
     n_res = len(drug_res)
     crl_n = (drug_res["outcome"] == "CRL").sum()
     cmc_crl = sum(1 for r in edata if r.get("outcome") == "CRL"
                   and r.get("crl_reason_class") == "CMC/manufacturing")
-    readme = open("README.md", encoding="utf-8").read()
-    check("README '6 ... CMC' matches data", ("6 were CMC" in readme) == (cmc_crl == 6),
+    check("data: 6 of the resolved CRLs are CMC/manufacturing", cmc_crl == 6,
           f"data CMC CRLs={cmc_crl}")
     cmc_res = drug_res[drug_res["risk_category"] == "CMC/manufacturing refile"]
     cmc_yes = (cmc_res["resolved_yes"].str.lower() == "true").sum()
-    check("README '1 / 8 = 12.5%' matches data",
-          ("1 / 8 = 12.5%" in readme) and (cmc_yes == 1) and (len(cmc_res) == 8),
+    check("data: contaminated CMC-refile cohort is 1/8 on-time", cmc_yes == 1 and len(cmc_res) == 8,
           f"CMC refile resolved on-time={cmc_yes}/{len(cmc_res)}")
+    lim = open("LIMITATIONS.md", encoding="utf-8").read().lower()
+    check("LIMITATIONS.md flags the 1/8 cohort as look-ahead-contaminated",
+          ("1/8" in lim or "1 / 8" in lim) and "look-ahead" in lim)
+    readme = open("README.md", encoding="utf-8").read()
+    check("README points to FINDINGS/LIMITATIONS instead of stating conclusions",
+          "FINDINGS.md" in readme and "LIMITATIONS.md" in readme and "1 / 8 = 12.5%" not in readme)
 
     # ===================================================================== #
     #  VALIDITY LAYER (B) — sections 9-11                                    #

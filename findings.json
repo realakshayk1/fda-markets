@@ -206,7 +206,7 @@
   "open_edge": {
     "n_scored": 8,
     "n_benchmark_NA": 2,
-    "max_abs_gap": 0.0954,
-    "n_gap_over_0.10_and_depth_ok": 0
+    "max_abs_gap": 0.1104,
+    "n_gap_over_0.10_and_depth_ok": 2
   }
 }

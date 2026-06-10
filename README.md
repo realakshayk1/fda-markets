@@ -1,142 +1,196 @@
-# fda-markets
+# FDA Drug-Approval Market Data Collection Pipeline
 
-A reproducible pipeline that collects every **FDA drug-approval prediction
-market** on Polymarket (open and resolved), pulls their full price histories,
-attaches hand-researched regulatory metadata, and computes calibration / surprise
-metrics — so the market's forecasting accuracy and risk mis-pricing can be analyzed.
+This repository contains scripts to collect and process FDA drug-approval
+prediction-market data from Polymarket, producing an analysis-ready dataset:
+prices, full price histories, a hand-researched regulatory-metadata layer with a
+cited source for every value, computed calibration/depth metrics, and a
+transparent base-rate benchmark.
 
-All data comes from **public Polymarket APIs (no key, no auth)** plus a
-web-researched regulatory-enrichment layer with a cited source for every value.
+All market data comes from public Polymarket APIs (no key, no auth). Analysis,
+findings, and caveats live in `FINDINGS.md` and `LIMITATIONS.md`, not in this
+README.
 
-## Pipeline
+## Prerequisites
 
 ```
-fetch_markets.py     →  fda_markets_raw.csv          (Gamma API: fda + drug tags, open + closed)
-build_enrichment.py  →  enrichment.csv               (from enrichment_data.json — cited regulatory facts)
-enrich_markets.py    →  fda_markets_enriched.csv      (raw + regulatory metadata, joined on slug)
-process_markets.py   →  fda_markets_processed.csv     (+ price histories + computed metrics)
-summary.py           →  console summary + findings
-make_figures.py      →  figures/*.png                 (analysis charts)
+pip install -r requirements.txt        # pandas requests tqdm matplotlib
+```
+
+## Pipeline Overview
+
+```
+Step 1: Fetch    →    Step 2: Enrich    →    Step 3: Process    →    Step 4: Benchmark    →    Step 5: Figures + Audit
+(1 script)            (manual + 2 scripts)   (1 script)              (3 scripts)               (2 scripts)
 ```
 
 Run it end to end:
 
 ```bash
-pip install -r requirements.txt        # pandas requests tqdm matplotlib
 python fetch_markets.py
 python build_enrichment.py
 python enrich_markets.py
-python process_markets.py              # caches price series; pass --refresh to re-download
-python summary.py
-python make_figures.py                 # writes PNGs to figures/
+python process_markets.py        # caches price series; pass --refresh to re-download
+python make_figures.py           # writes PNGs to figures/
+python benchmark.py              # self-test of the fair-value model
+python edge.py                   # writes edge_open.csv
+python insights.py               # writes findings.json
+python audit.py                  # reproducibility + validity checks
 ```
 
-`process_markets.py` reads `fda_markets_enriched.csv` if present (else the raw
-file with `--raw`). It caches each price series to disk, so re-runs and the
-reproducibility check don't re-hit the API; use `--refresh` to force a re-pull.
+## Step 1: Fetch Markets
 
-## Outputs
+```
+python fetch_markets.py
+```
 
-| File | Contents |
+Queries Polymarket's Gamma API for every FDA drug-approval market, open and
+closed, under the `fda` and `drug` tags. De-dupes by event id and keeps only
+per-drug contracts whose title starts with "FDA approves" (see Scope Filter).
+Each row carries prices, token ids, volume, dates, and the market's own
+resolution-rules text.
+
+Output: `fda_markets_raw.csv`
+
+## Step 2: Enrich Markets (cited regulatory metadata)
+
+`enrichment_data.json` is the hand-researched layer. For each market slug it
+records application type, PDUFA date, prior-cycle CRL and its cause,
+designations, manufacturing-inspection flags, outcome, eventual approval, and a
+primary `source_url` for every value. Two scripts turn it into a joined table:
+
+```
+python build_enrichment.py       # enrichment_data.json -> enrichment.csv
+python enrich_markets.py          # joins enrichment onto raw markets, on slug
+```
+
+Outputs: `enrichment.csv`, `fda_markets_enriched.csv`
+
+## Step 3: Process Markets (price history + metrics)
+
+```
+python process_markets.py         # --raw to read the raw file; --refresh to re-pull
+```
+
+Fetches each market's full daily Yes-price series from the CLOB API (and a 10-min
+series for sharp movers), caches them to disk, and computes calibration,
+surprise, single-order, and depth metrics. It reads `fda_markets_enriched.csv` if
+present. Cached series mean re-runs and the audit do not re-hit the API.
+
+Outputs: `fda_markets_processed.csv` (analysis-ready, 74 columns),
+`price_history/<slug>.csv`, `price_history_fine/<slug>.csv`, `market_depth.csv`
+
+## Step 4: Benchmark and Edge
+
+```
+python benchmark.py               # self-test of the fair-value model
+python edge.py                    # backtest + open-slate scoring
+python insights.py                # rate table with n + Wilson CIs
+```
+
+`benchmark.py` turns cited FDA population base rates (`benchmark_params.json`,
+sourced to `population/fda_reference_rates.csv`) into a fair value per market,
+using pre-decision inputs only. `edge.py` runs the out-of-sample backtest of the
+benchmark against the crowd and scores the open markets. `insights.py` emits
+every rate with its sample size and a Wilson 95% interval.
+
+Outputs: `edge_open.csv`, `findings.json`
+
+## Step 5: Figures and Audit
+
+```
+python make_figures.py            # writes figures/*.png
+python audit.py                   # PASS/FAIL per check
+```
+
+`audit.py` runs reproducibility checks (sections 1-8: independently recompute
+every metric and every figure's plotted aggregation from the raw series) and
+validity checks (sections 9-14: a per-row look-ahead/leakage report, n + Wilson
+CI on every rate, and a leakage-safety scan of the benchmark inputs).
+
+## Output Files
+
+| File | Description |
 |---|---|
-| `fda_markets_raw.csv` | One row per market straight from Gamma (prices, tokens, volume, dates, `context_description`). |
-| `fda_markets_enriched.csv` | Raw + 22 regulatory fields (sponsor, PDUFA, application type, prior-CRL + reason class, designations, outcome, eventual approval, source URLs). |
-| `fda_markets_processed.csv` | The **analysis-ready** file: enriched rows + calibration/surprise/single-order/depth metrics. Full 74-column data dictionary in [methodology.md](methodology.md#7-column-dictionary--fda_markets_processedcsv). |
+| `fda_markets_raw.csv` | One row per market from Gamma (prices, tokens, volume, dates, resolution text). |
+| `enrichment_data.json` | The cited regulatory-metadata layer, with research notes and a `source_url` per value. |
+| `enrichment.csv` | Flattened enrichment table. |
+| `fda_markets_enriched.csv` | Raw markets joined with the 22 regulatory fields. |
+| `fda_markets_processed.csv` | Analysis-ready file: enriched rows + computed metrics (74-column dictionary in `methodology.md`). |
 | `price_history/<slug>.csv` | Daily (1440-min) Yes-price series, full life of each market. |
 | `price_history_fine/<slug>.csv` | 10-min series for sharp movers (single-order detection). |
-| `market_depth.csv` | Per-market liquidity/concentration from `/trades`+`/holders` (trades, unique traders, largest trade, top holders, top-holder %). |
-| `figures/*.png` | Analysis charts from `make_figures.py` (see **Figures** below). |
-| `enrichment_data.json` | Source of the enrichment layer — cited, with research notes. |
-| `methodology.md` | Field definitions, resolution semantics, base rate, caveats. |
+| `market_depth.csv` | Per-market liquidity/concentration from `/trades` + `/holders`. |
+| `benchmark_params.json` | Cited, pre-registered base-rate coefficients for the fair-value model. |
+| `population/fda_reference_rates.csv` | The published FDA statistics the benchmark coefficients are sourced to. |
+| `edge_open.csv` | Open markets: fair value vs market price, gap, and a liquidity flag. |
+| `findings.json` | Every reportable rate with its n, Wilson 95% CI, and leakage flag. |
+| `figures/*.png` | Charts from `make_figures.py` (see Figures). |
+| `methodology.md` | Field definitions, resolution semantics, benchmark method, caveats. |
+| `FINDINGS.md`, `LIMITATIONS.md` | Ranked findings (with confidence tiers) and the honest limits. |
 
 ## Figures
 
-`python make_figures.py` reads `fda_markets_processed.csv` + the `price_history/`
-series and writes these PNGs to `figures/`.
+`python make_figures.py` reads `fda_markets_processed.csv` and the `price_history/`
+series and writes these PNGs. Interpretation lives in `FINDINGS.md`.
 
-**The mis-pricing, in one chart** — what the market charged ~7 days out vs. what
-actually happened, by regulatory risk class. Clean first-cycle reviews were
-*under*-priced (0.72 → approved 100% of the time, n=18); CMC/manufacturing-gated
-reviews were charged 0.36 but approved on time only **1 of 8 times (12.5%)**:
+| File | What it shows |
+|---|---|
+| `fig1_risk_inversion.png` | Price charged vs realized rate by `risk_category` (carries an on-chart leakage caveat; see LIMITATIONS §1). |
+| `fig2_calibration.png` | Reliability curve of the 1-day-out price (mean Brier). |
+| `fig3_surprises.png` | Blindside markets: confident and wrong into the decision. |
+| `fig4_open_slate.png` | Open markets' price vs the FDA base rate. |
+| `fig5_depth.png` | Market thinness: top-holder concentration vs holder count. |
+| `fig6_leakage_free_gradient.png` | On-time rate by a pre-knowable (`prior_crl`) axis, with Wilson CIs. |
+| `fig7_leakage_artifact.png` | The refile rate: contaminated bucket vs leakage-free cohort. |
+| `fig8_bydate_vs_ever.png` | Approved on time vs approved ever, per cohort. |
+| `fig9_residual_vs_price.png` | Outcome minus the 7-day price (was the risk already priced). |
+| `fig10_accuracy.png` | Majority-side accuracy at 7 days and 1 day out, with CIs. |
+| `fig11_outcome_decomp.png` | How resolved markets ended (Yes / CRL / Delay). |
+| `fig12_edge_map.png` | Open slate: benchmark fair value vs market price, by depth. |
+| `fig13_benchmark_vs_market.png` | Did the base-rate benchmark beat the crowd out-of-sample. |
 
-![Price charged vs. realized on-time approval rate, by risk class](figures/fig1_risk_inversion.png)
+## Scope Filter
 
-**Calibration of the 1-day-out price** — predicted Yes probability vs. observed
-approval frequency (mean Brier ≈ 0.136):
-
-![1-day-out calibration curve](figures/fig2_calibration.png)
-
-**Blindsides** — markets that were confident *and wrong* going into the decision
-(e.g. TLX250 riding ~80% into a CRL; Ketamine sitting ~20% before a surprise
-approval), aligned to days-before-resolution:
-
-![Blindside price trajectories](figures/fig3_surprises.png)
-
-**Open slate vs. the base rate** — current Yes price minus the 0.835 FDA on-time
-base rate, colored by risk category (negative = priced below history):
-
-![Open slate vs. base rate](figures/fig4_open_slate.png)
-
-**Market thinness** — top-holder concentration vs. reported holder count, point
-size ∝ trade count, single-order moves highlighted:
-
-![Market thinness scatter](figures/fig5_depth.png)
-
-## Data sources (all public)
-
-1. **Gamma — events** `https://gamma-api.polymarket.com/events?tag_slug={fda|drug}&closed={true|false}&limit=8&offset={N}&order=endDate&ascending=false`
-   Paged at `limit=8` (large event payloads truncate at higher limits). Both
-   `fda` and `drug` tags, both states, de-duped by event `id`.
-2. **Gamma — single event** `…/events?slug={slug}` — small payload, used for clean re-pulls and QA spot-checks.
-3. **CLOB — price history** `https://clob.polymarket.com/prices-history?market={YES_TOKEN_ID}&interval=max&fidelity={min}` — daily (`1440`) for every market; 10-min (`10`) for flagged sharp movers.
-4. **Data API** `https://data-api.polymarket.com/trades` and `/holders` — available for single-trader confirmation of suspected single-order moves.
-
-## Scope filter
-
-We keep only per-drug contracts whose title starts with **"FDA approves"**.
-This excludes non-drug FDA markets ("next FDA commissioner", "FDA revokes polio
+Only per-drug contracts whose title starts with "FDA approves" are kept. This
+excludes non-drug FDA markets ("next FDA commissioner", "FDA revokes polio
 vaccine", the grouped "FDA approvals in July" event). The thematic
-**"FDA approves a psychedelic for medical use in 2026"** market is kept in the
-dataset but **excluded from the drug-by-drug base rate** — it resolved Yes on a
-substance-list technicality (see `methodology.md`).
+"FDA approves a psychedelic for medical use in 2026" market is kept in the
+dataset but excluded from the drug-by-drug base rate, because it resolved Yes on
+a substance-list technicality (see `methodology.md`).
 
-## Headline result
+## API Reference
 
-Splitting resolved markets by regulatory risk class exposes a sharp gradient
-(mean Yes price the market charged ~7 days before resolution vs. the realized
-on-time approval rate):
+- **Gamma, events:** `https://gamma-api.polymarket.com/events?tag_slug={fda|drug}&closed={true|false}&limit=8&offset={N}&order=endDate&ascending=false`. Paged at `limit=8`; both tags, both states, de-duped by event id.
+- **Gamma, single event:** `https://gamma-api.polymarket.com/events?slug={slug}`. Small payload, used for clean re-pulls and QA.
+- **CLOB, price history:** `https://clob.polymarket.com/prices-history?market={YES_TOKEN_ID}&interval=max&fidelity={min}`. Daily (`1440`) for every market; 10-min (`10`) for flagged movers.
+- **Data API:** `https://data-api.polymarket.com/trades` and `/holders`, for depth and single-trader confirmation.
 
-| risk_category | mean price charged | on-time approval rate |
-|---|---|---|
-| Clean desk review | 0.72 | **18 / 18 = 100%** |
-| Oncology sNDA | 0.90 | 2 / 2 = 100% |
-| CMC/manufacturing refile | 0.36 | **1 / 8 = 12.5%** |
-| Clinical/efficacy | 0.39 | 0 / 2 = 0% |
-| Timeline bet | 0.08 | 0 / 3 = 0% |
+## Rate Limiting
 
-Clean first-cycle reviews approved on time every time; CMC-gated reviews almost
-never did. Of the 8 resolved CRLs, **6 were CMC/manufacturing-driven** (only
-Capricor and PTC's vatiquinone were efficacy CRLs) — manufacturing, not data, is
-what sinks these.
+`process_markets.py` caches every price series to `price_history/`, so re-runs
+and `audit.py` read from disk rather than re-hitting the API. Use `--refresh` to
+force a re-pull. If you hit rate-limit errors on a cold run, add or raise the
+`time.sleep()` delays between requests.
 
-**The sharper thread — the market may be forgetting its own lesson.**
-Historically the market priced CMC/manufacturing refiles at ~0.36 and they
-approved on time just **1 of 8 times (12.5%)** — and the two it priced
-*confidently high* (TLX250 at ~0.80, GTx-104 at ~0.71) both took CRLs. Yet the
-**three open CMC refiles sit at 0.72–0.77** (Oclaiz, Arcalyst, Unicycive's OLC) —
-more than double the historical average, priced as if that 12.5% track record
-didn't exist. Caveats: small n (8), and each open refile may genuinely have fixed
-its specific CMC issue — but the base rate says be skeptical. (CMC problems are
-usually *curable* — 2 of the 8 were eventually approved, 6 resubmitted and
-pending — just rarely on the market's by-this-date timeline, which is exactly why
-these contracts resolve No.)
+## Current Dataset
 
-**A clean within-drug case study:** Unicycive's oxylanthanum carbonate appears
-twice — the 2025 market resolved No on a single-deficiency CMC CRL; the 2026
-market is the *refile* of the same drug, still pending. Same molecule, two
-cycles.
+As of the 2026-06-09 snapshot, `fda_markets_processed.csv` contains 44 markets:
 
-> Data snapshot: 2026-06-09 (open-market prices re-pulled at write time). Markets
-> resolve continuously, so re-running picks up newly resolved contracts and
-> updated prices. Every regulatory classification above is verified against
-> primary sources cited in `enrichment_data.json`.
+- 33 resolved drug-approval markets, 10 open, plus 1 thematic market (excluded from the base rate).
+- Of the 33 resolved: 21 resolved Yes, 12 resolved No (8 CRLs, 4 PDUFA delays).
+- Total volume across all 44 markets: ~$903K. (These are thin markets; treat per-market liquidity accordingly.)
+- A daily price series for all 44 markets; a 10-min series for 27 sharp movers.
+
+Markets resolve continuously, so re-running picks up newly resolved contracts and
+updated prices.
+
+## Analysis and Findings
+
+Conclusions are deliberately kept out of this README. `FINDINGS.md` lists the
+supported and unsupported conclusions, each tagged ROBUST / SUGGESTIVE /
+ANECDOTAL with its sample size and Wilson interval. `LIMITATIONS.md` covers the
+load-bearing caveats: look-ahead/leakage in `risk_category`, small sample size,
+selection bias, and the by-date vs ever-approved distinction. In short: a
+transparent FDA base-rate benchmark loses to the crowd out-of-sample, so these
+markets are roughly efficient, and the commonly cited risk-class "gradient" is
+look-ahead-contaminated (LIMITATIONS §1). Every regulatory value is verified
+against the primary sources cited in `enrichment_data.json`.

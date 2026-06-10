@@ -180,6 +180,33 @@ slate — see the risk-category breakdown.
   differs from the true PDUFA date; verify against the cited source before relying
   on either.
 
+## 6b. Benchmark layer (`benchmark.py`, `edge.py`)
+
+A transparent, **pre-registered** fair value for each market, built to measure
+the crowd against a defensible base rate rather than to predict outcomes.
+
+- **Coefficients** (`benchmark_params.json`) are **every one cited or derived**
+  from published FDA statistics (in `population/fda_reference_rates.csv`):
+  first-cycle approval 84% (base), novel-mechanism 64% (→ the modality penalty is
+  the arithmetic `logit(0.64)−logit(0.84)`), PDUFA goal-date met 92–96%
+  (→ 6% extension rate), priority review a cited null. Modifiers with no published
+  rate (post-CRL resubmission, gene/cell-specific, AdCom→extension, breakthrough)
+  are **omitted, not guessed** (`_meta.omitted`). Set **before** any residual
+  against this sample — not fit to the 33 markets.
+- **Form:** `logit(p_ever) = base + Σ pre-decision modifiers`;
+  `p_on_time = 1 − extension_rate`; `fair = p_ever × p_on_time` for dated
+  markets, `p_ever` is reported but the model **abstains** (fair = N/A) on
+  open-ended "this year" markets with no firm PDUFA.
+- **Leakage safety is structural:** `benchmark.ALLOWED_INPUTS` whitelists
+  pre-decision columns; the reader refuses any outcome/price column;
+  `manufacturing_inspection_required` is excluded (validity audit found it
+  collinear with the realized CMC outcome). `audit.py §12` asserts all of this.
+- **`edge.py`** runs the **out-of-sample backtest** (benchmark Brier vs crowd
+  Brier, paired sign test with n + Wilson CI) and writes `edge_open.csv` (open
+  markets: `fair_price`, `gap_fair_minus_market`, `depth_ok` liquidity gate, and
+  a per-market `rationale`). The benchmark currently **loses** to the crowd — a
+  gap is a hypothesis, not a signal. See `LIMITATIONS.md §8`.
+
 ## 7. Column dictionary — `fda_markets_processed.csv`
 
 The analysis-ready file (74 columns) layers four groups: raw market state, the

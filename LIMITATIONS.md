@@ -76,8 +76,9 @@ the market date — so **Resolved No ≠ rejected.** Tracked separately as
 ## 5. "Already priced" — the alpha caveat
 
 A risk the price already reflects is not an edge. Residual = outcome − price 7d
-out (n=23 with a 7-day price): refiles **−0.14 (n=3)**, first-cycle **+0.11
-(n=20)** — no systematic, sign-stable mispricing, and the refile mean is one
+out (n=21 with a 7-day price, anchored to the actual FDA action): refiles
+**−0.33 (n=3)**, first-cycle **+0.11 (n=18)** — no systematic, sign-stable
+mispricing, and the refile mean is one
 market (TLX250) deep (`fig9`). Any alpha claim must be made on the **residual**
 vs the market price, never on the raw outcome, and must be out-of-sample.
 
@@ -114,7 +115,7 @@ both sit in the first-cycle cohort. `crl_date` for two refiles is approximate
 `benchmark.py` turns cited FDA *population* rates into a fair value. Honest
 limits:
 
-- **It loses to the crowd** (crowd Brier 0.137 vs benchmark 0.247, S7), so a
+- **It loses to the crowd** (crowd Brier 0.123 vs benchmark 0.247, S7), so a
   gap vs the benchmark is a *hypothesis*, never a signal. Treat the benchmark as
   "what a transparent base rate would say," not "what's true."
 - **Every coefficient is cited or derived — none is a guess.** Base rate (0.84)
@@ -132,7 +133,35 @@ limits:
   the Polymarket slate is a selection-biased subset (§3), so the benchmark is a
   population anchor applied to a non-random sample.
 
-## 9. What `audit.py` does and does not prove
+## 9. Resolution timing: the event precedes the settlement, and the deadline has a grace window
+
+Two facts about *when* these markets resolve that the metrics now account for, and
+that earlier versions did not:
+
+- **The FDA often acts well before the market formally settles.** For ~5 resolved
+  markets the actual action (`outcome_date`) led the formal settlement
+  (`closed_time`) by 12–52 days (UX111 52, Vepdegestrant 35, Deramiocel 24,
+  Truqap 16, EYLEA HD 12). The market keeps trading (price pinned near 0 or 1)
+  until its resolve-by window closes. The before-resolution prices
+  (`prob_7d`/`prob_3d`/`prob_1d`) are now anchored to **`outcome_date`**, so they
+  measure the price *before the real news*, not after. This is a genuine
+  foresight measure; the earlier `closed_time` anchor flattered the crowd
+  (e.g. EYLEA HD looked like a confident, correct "No" at 0.015 when, the day
+  before the delay was announced, it was actually at 0.55 and *wrong*). Re-anchoring
+  moved the headline accuracy from 24/30 to 18/24 at 1 day and the Brier from
+  0.136 to 0.156. Markets with no genuine pre-event price (UX111, Vepdegestrant)
+  correctly drop to blank rather than count as easy "correct" calls.
+- **The resolve-by date is not `end_date`.** Each contract's rules give a uniform
+  **~14-day grace** past the expected PDUFA: `end_date` is the expected action
+  date, but the market resolves Yes if the approval lands by `end_date + 14`
+  (Oclaiz end 2026-06-10 resolves by June 24; Arcalyst end 06-19 by July 3; etc.).
+  This is captured as the `resolve_by_date` column. Consequence: the timing risk
+  in a "by date" contract is **lower** than `end_date` implies — a slip of up to
+  two weeks still pays Yes. The benchmark's `extension_rate` (P of slipping past
+  the goal date) therefore *overstates* the real miss rate for these markets, and
+  should be read as conservative; only a multi-week extension actually flips them.
+
+## 10. What `audit.py` does and does not prove
 
 `audit.py` sections 1–8 prove **reproducibility** (the numbers are
 self-consistent and the figures match the data). They do **not** prove

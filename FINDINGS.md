@@ -44,14 +44,14 @@ of [0,1]); treat as a hypothesis, not a result.
 
 | # | Conclusion | Tier | Evidence (n, Wilson 95% CI) |
 |---|---|---|---|
-| S1 | **The market is reasonably well-calibrated 1 day out.** | SUGGESTIVE | mean Brier 0.136 over n=23 resolved with a 1-day price (fig2). Good, but small n and the curve is sparse in the mid-buckets. |
+| S1 | **The market is reasonably well-calibrated 1 day out.** | SUGGESTIVE | mean Brier 0.156 over n=24, measured 1 day before the actual FDA action (`outcome_date`, not the formal settlement — see LIMITATIONS §9). Good, but small n and the curve is sparse in the mid-buckets. |
 | S2a | **"Resolved No" ≠ "rejected"** (definitional): a No can be a CRL, a withdrawal, *or* a PDUFA delay; the drug may still be approved later. | ROBUST | Resolution rules + enrichment decompose every No into `outcome` (methodology §1). Not cohort-dependent. |
 | S2b | In *this* sample, **22/33 drugs were approved ever vs 21/33 on time.** | SUGGESTIVE | by-date 21/33 = 64% [47%,78%]; ever 22/33 = 67% [50%,80%] (fig8). The specific 1-drug gap is n=33, selection-biased — directional only. |
 | S3 | **A prior-CRL refile resolved on time less often than a first-cycle review** in this sample. | ANECDOTAL | refile 1/3 = 33% [6%,79%] **(n=3)** vs first-cycle 20/30 = 67% [49%,81%] (fig6). The two CIs **overlap heavily** — directionally consistent with FDA priors but the data does **not** establish a real difference. Hypothesis, not result. |
 | S4 | **Priority-review markets resolved on time more often than standard-review ones.** | SUGGESTIVE | priority 12/15 = 80% [55%,93%] vs standard 9/18 = 50% [29%,71%]. `review_type` is pre-knowable in principle but is a hand-label (`unknown` for Tebipenem) not put through the same leakage audit as `risk_category`; CIs overlap. Plausible, not established. |
 | S5 | **The slate ran below the conventional ~83% base rate** (CMC/refile-heavy cohort). | SUGGESTIVE | all-resolved on-time 21/33 = 64% [47%,78%]; CI excludes 0.835. |
 | S6 | **Markets can be confidently wrong intraday** (blindsides exist). | ANECDOTAL | `surprise` fires on a handful (fig3); each is n=1, illustrative not rate-bearing. TLX250 ~80%→CRL is the cleanest case. |
-| S7 | **The crowd is sharper than a transparent FDA base rate.** A pre-registered benchmark whose coefficients are all cited/derived from real FDA data (`benchmark.py`) *loses* to the market out-of-sample. | SUGGESTIVE | crowd Brier **0.137** vs benchmark **0.247**; the base rate beat the crowd only **13/33** (win 39% [25%,56%], sign-test p=0.30) — fig13. Evidence the new FDA markets are **roughly efficient**; a static base rate is not an edge. |
+| S7 | **The crowd is sharper than a transparent FDA base rate.** A pre-registered benchmark whose coefficients are all cited/derived from real FDA data (`benchmark.py`) *loses* to the market out-of-sample. | SUGGESTIVE | crowd Brier **0.123** vs benchmark **0.247**; the base rate beat the crowd only **11/33** (win 33% [20%,50%], sign-test p<0.2) — fig13. Evidence the new FDA markets are **roughly efficient**; a static base rate is not an edge. |
 
 ## (ii) TEMPTING conclusions the data does NOT support (or overstates)
 
@@ -61,7 +61,7 @@ Be exhaustive here — this is the referee's main job.
 |---|---|---|
 | U1 | **"CMC/manufacturing refiles approve on time only 12.5% (1/8)."** | **Look-ahead leakage.** 5 of the 8 had `prior_crl=no` — they are first-cycle CRLs/Delays sorted into a *refile* bucket *because the CMC CRL happened* (EYLEA-HD wasn't even a CRL — a Delay with `crl_reason_class` blank). The pre-identifiable rate is **1/3 = 33% [6%,79%], n=3.** The "12.5%" is not a forecastable base rate; it is the failure set describing itself. |
 | U2 | **"Clean first-cycle reviews approve on time 100% (18/18)."** | **Survivorship at the bucket boundary.** "Clean desk" is a *residual* category: any clean-looking drug that took a surprise CRL is reclassified into "Clinical/efficacy" or "CMC refile" and removed. So 18/18 is partly definitional. Even at face value it is **18/18 = 100%, Wilson 95% [82%, 100%]** (lower bound 0.824) — not "always." The pre-decision first-cycle rate that *keeps* the failures is **20/30 = 67% [49%,81%]** (this cohort is heterogeneous — see confound (d)). |
-| U3 | **"The market forgot its lesson — short the 3 open refiles at 0.72–0.77."** (the README's "alpha") | Fails four ways: (a) base rate is the contaminated 12.5%; the clean comparator is 1/3 = 33%, **n=3, CI [6%,79%]** — you cannot price an edge off that. (b) One of the "three open refiles," **Arcalyst, has `prior_crl=no`** — it is not a refile by the dataset's own flag. (c) The market price **is** the forecast; refiles' mean residual vs the 7-day price is **−0.14 (n=3)** — the market *over*-charged refile risk on average, the opposite of the thesis. (d) Each refile may have fixed its specific CMC issue; the data cannot distinguish that from base-rate skepticism. |
+| U3 | **"The market forgot its lesson — short the 3 open refiles at 0.72–0.77."** (the README's "alpha") | Fails four ways: (a) base rate is the contaminated 12.5%; the clean comparator is 1/3 = 33%, **n=3, CI [6%,79%]** — you cannot price an edge off that. (b) One of the "three open refiles," **Arcalyst, has `prior_crl=no`** — it is not a refile by the dataset's own flag. (c) The market price **is** the forecast; refiles' mean residual vs the 7-day price is **−0.33 (n=3)** — the market *over*-charged refile risk on average, the opposite of the thesis. (d) Each refile may have fixed its specific CMC issue; the data cannot distinguish that from base-rate skepticism. |
 | U4 | **"`manufacturing_inspection_required=yes` predicts failure (1/8)."** | The 8 inspection-required rows are **identical** to the contaminated CMC bucket. The flag is collinear with the outcome and cannot be certified pre-knowable from the data (it may have been set *because* the CRL cited a 483/inspection). Promising lead, but **unverifiable here** — do not trade it. |
 | U5 | **"The risk gradient proves the market mis-prices regulatory risk → alpha."** | The gradient is mostly the leakage of U1–U2. After de-leaking, the only clean axis (prior_crl) has n=3 on the risky side. No mis-pricing is demonstrated *beyond what the price already encoded* (residual test, U3c). |
 | U6 | **"64% on-time is the FDA base rate."** | This is a **selection-biased sample** of *drugs that got a Polymarket market* in 2025–26 — skewed toward contested, refile-heavy, retail-interesting decisions. It is not the population FDA first-cycle rate (~80–87%). n=33. |
@@ -76,8 +76,9 @@ Be exhaustive here — this is the referee's main job.
 ## Confounds tested (§3 of the brief)
 
 - **(a) Already priced?** Residual = outcome − price 7d out (markets with a
-  7-day price, n=23). Refiles mean **−0.14 (n=3)**; first-cycle **+0.11
-  (n=20)**. Neither is a systematic, sign-stable edge — the refile mean is one
+  7-day price, n=21, anchored to the actual FDA action). Refiles mean
+  **−0.33 (n=3)**; first-cycle **+0.11 (n=18)**. Neither is a systematic,
+  sign-stable edge — the refile mean is one
   market (TLX250) deep; the market had largely charged the gradient already
   (fig9). A gradient the price already reflects is not alpha.
 - **(b) Selection / survivorship.** Markets exist only for decisions retail
@@ -105,15 +106,15 @@ plotted aggregation equals an independent recompute.
 | File | Question it answers | n | Status |
 |---|---|---|---|
 | fig1_risk_inversion | What did the market charge vs realize, by risk_category? | 33 | **MISLEADING — annotated** with a leakage banner; kept for transparency only |
-| fig2_calibration | Is the 1-day price calibrated? | 23 | defensible |
+| fig2_calibration | Is the 1-day price calibrated? | 24 | defensible |
 | fig3_surprises | Which markets were confident and wrong? | ~4 | illustrative (per-line n=1) |
 | fig4_open_slate | How is the open slate priced vs base rate? | 11 | defensible (base rate is a prior, not ground truth) |
 | fig5_depth | How thin/concentrated are these markets? | 44 | defensible |
 | **fig6_leakage_free_gradient** | Does the gradient survive removing look-ahead? | 33 | **defensible — the honest version of fig1** |
 | **fig7_leakage_artifact** | How much of "12.5%" is leakage? | 8 vs 3 | **defensible** |
 | **fig8_bydate_vs_ever** | Is "No" rejection or just lateness? | 33 | **defensible** |
-| **fig9_residual_vs_price** | Was the risk already priced (alpha test)? | 23 | **defensible — descriptive, n small** |
-| **fig10_accuracy** | Was the crowd right at 7d/1d? (Red-Tilt-style) | 23/30 | defensible |
+| **fig9_residual_vs_price** | Was the risk already priced (alpha test)? | 21 | **defensible — descriptive, n small** |
+| **fig10_accuracy** | Was the crowd right at 7d/1d? (Red-Tilt-style, anchored to the FDA action) | 21–24 | defensible |
 | **fig11_outcome_decomp** | How did "No" markets actually resolve (CRL vs Delay)? | 33 | defensible |
 | **fig12_edge_map** | Open slate vs the cited base rate, depth-gated | 8 (+2 N/A) | defensible — gaps are hypotheses |
 | **fig13_benchmark_vs_market** | Did a transparent base rate beat the crowd? | 33 | **defensible — the efficiency test (S7)** |

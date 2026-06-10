@@ -8,3 +8,16 @@ OPENING_LINE*.docx
 OPENING_LINE*.pdf
 article_figures.py
 figures/article/
+
+# Regenerable pipeline artifacts. The pipeline rebuilds these from the cited
+# inputs (enrichment_data.json, benchmark_params.json, population/) + the live
+# API. Only the canonical dataset (fda_markets_processed.csv) and the charts
+# (figures/*.png) are tracked; everything else here is rebuilt on demand.
+price_history/
+price_history_fine/
+fda_markets_raw.csv
+fda_markets_enriched.csv
+enrichment.csv
+market_depth.csv
+edge_open.csv
+findings.json

@@ -20,8 +20,9 @@ import argparse
 import csv
 import json
 import os
+import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import requests
@@ -170,15 +171,47 @@ def write_series(path, hist):
 
 
 def _resolution_unix(row):
-    """Best timestamp for 'resolution': closed_time, else end_date."""
-    for key in ("closed_time", "end_date"):
+    """Anchor for the before-resolution price metrics.
+
+    Prefer `outcome_date` (the actual FDA action) so prob_7d/3d/1d are measured
+    BEFORE the real news, not after a formal settlement that can lag the event by
+    weeks. Several markets keep trading (price pinned at ~0/~1) for days or weeks
+    after the FDA has acted, until the market's resolve-by window closes; anchoring
+    to closed_time there would measure a post-event price and flatter the crowd's
+    apparent foresight. Fall back to closed_time, then end_date (e.g. open markets,
+    where outcome_date is 'pending').
+    """
+    for key in ("outcome_date", "closed_time", "end_date"):
         v = row.get(key)
-        if v:
+        if v and str(v).strip().lower() not in ("", "pending", "n/a", "nan", "none"):
             try:
                 return datetime.fromisoformat(str(v).replace("Z", "+00:00")).timestamp()
             except ValueError:
                 continue
     return None
+
+
+def _resolve_by_date(row):
+    """The market's TRUE resolve-by date, read from its resolution rules.
+
+    Polymarket's FDA contracts resolve Yes if the approval lands by a date stated
+    in the description ('...approval...by [Month D, YYYY]'), which for these
+    markets is a uniform ~14-day grace past `end_date`. `end_date` is the expected
+    PDUFA; this is the actual settlement deadline. Falls back to end_date + 14 days
+    if the description can't be parsed.
+    """
+    desc = str(row.get("event_description") or "")
+    m = re.search(r"\bby ([A-Z][a-z]+ \d{1,2},? \d{4})", desc)
+    if m:
+        try:
+            return datetime.strptime(m.group(1).replace(",", ""), "%B %d %Y").strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+    try:
+        d = datetime.fromisoformat(str(row.get("end_date")).replace("Z", "+00:00")).replace(tzinfo=None)
+        return (d + timedelta(days=14)).strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return ""
 
 
 def price_at(hist, target_unix):
@@ -380,6 +413,7 @@ def main():
 
         m = daily_metrics(hist, row)
         m["slug"] = slug
+        m["resolve_by_date"] = _resolve_by_date(row)
         metrics_rows.append(m)
 
         if m["max_1d_move"] and m["max_1d_move"] >= SHARP_MOVE:

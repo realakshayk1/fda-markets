@@ -22,6 +22,12 @@ def _pct(x):
     return "n/a" if x is None or pd.isna(x) else f"{float(x):.0%}"
 
 
+def _fmt_vol(v):
+    if v is None or pd.isna(v):
+        return "?"
+    return f"${v / 1000:.1f}K" if v >= 1000 else f"${v:.0f}"
+
+
 def main():
     df = A.load()
     params = benchmark.load_params()
@@ -30,6 +36,7 @@ def main():
     _, bt = edge.backtest_resolved(df, params)
     eo = edge.score_open(df, params)
     rb = dict(zip(df["slug"], df.get("resolve_by_date", pd.Series(dtype=str))))
+    vol = dict(zip(df["slug"], pd.to_numeric(df["volume"], errors="coerce")))
 
     asof = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     L = []
@@ -53,7 +60,7 @@ def main():
     # --- open slate ---
     L.append("## Open markets")
     L.append("")
-    L.append("| Drug | Price | Resolves by | Benchmark | Gap vs benchmark | Tradeable depth |")
+    L.append("| Drug | Price | Resolves by | Benchmark | Gap vs benchmark | Volume |")
     L.append("|---|---|---|---|---|---|")
     for _, r in eo.iterrows():
         fair = r["fair_price"]
@@ -62,7 +69,7 @@ def main():
         gap_s = "n/a" if gap == "N/A" else f"{float(gap):+.0%}"
         L.append(f"| {r['drug']} | {_pct(r['market_price'])} | "
                  f"{rb.get(r['slug'], '?')} | {fair_s} | {gap_s} | "
-                 f"{'yes' if r['depth_ok'] else 'thin'} |")
+                 f"{_fmt_vol(vol.get(r['slug']))} |")
     L.append("")
     L.append("*Benchmark is a transparent FDA base rate, not a forecast; gap is fair value minus market price. "
              "\"Resolves by\" is the contract's true deadline (a ~14-day grace past the expected PDUFA).*")

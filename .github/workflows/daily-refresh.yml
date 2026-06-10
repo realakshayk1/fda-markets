@@ -60,6 +60,7 @@ jobs:
           python benchmark.py
           python edge.py
           python insights.py
+          python snapshot.py
 
       - name: Validity + reproducibility gate (must pass before committing)
         run: |

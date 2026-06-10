@@ -6,25 +6,25 @@
   "rates": [
     {
       "label": "crowd correct @7d",
-      "k": 18,
-      "n": 23,
-      "point": 0.7826,
+      "k": 15,
+      "n": 21,
+      "point": 0.7143,
       "ci": [
-        0.581,
-        0.9034
+        0.5004,
+        0.8619
       ],
-      "tier": "ROBUST",
+      "tier": "SUGGESTIVE",
       "leakage": "none",
       "note": "majority-side accuracy; pre-decision price vs realized"
     },
     {
       "label": "crowd correct @1d",
-      "k": 24,
-      "n": 30,
-      "point": 0.8,
+      "k": 18,
+      "n": 24,
+      "point": 0.75,
       "ci": [
-        0.6269,
-        0.905
+        0.551,
+        0.88
       ],
       "tier": "ROBUST",
       "leakage": "none",
@@ -191,16 +191,16 @@
     "n_resolved": 33,
     "n_paired": 33,
     "benchmark_brier_mean": 0.247,
-    "market_brier_mean": 0.1373,
+    "market_brier_mean": 0.1231,
     "benchmark_brier_mean_paired": 0.247,
-    "benchmark_beats_market": 13,
+    "benchmark_beats_market": 11,
     "paired_decisive": 33,
-    "benchmark_win_rate": 0.3939,
+    "benchmark_win_rate": 0.3333,
     "benchmark_win_ci": [
-      0.2468,
-      0.5632
+      0.1975,
+      0.5039
     ],
-    "sign_test_p": 0.2962,
+    "sign_test_p": 0.0801,
     "verdict": "crowd SHARPER than the cited base rate"
   },
   "open_edge": {

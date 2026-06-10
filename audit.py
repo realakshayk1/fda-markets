@@ -64,9 +64,13 @@ def warn(name, detail):
 
 
 def res_unix(row):
-    for k in ("closed_time", "end_date"):
+    # Anchor before-resolution prices to the actual FDA action (outcome_date),
+    # not the formal settlement (closed_time), which can lag the event by weeks.
+    # Mirrors process_markets._resolution_unix so this recompute stays independent
+    # in code but consistent in definition.
+    for k in ("outcome_date", "closed_time", "end_date"):
         v = row.get(k)
-        if isinstance(v, str) and v:
+        if isinstance(v, str) and v and v.strip().lower() not in ("", "pending", "n/a", "nan", "none"):
             try:
                 return datetime.fromisoformat(v.replace("Z", "+00:00")).timestamp()
             except ValueError:
@@ -377,7 +381,7 @@ def main():
     check("fig9 residual means per axis == independent recompute", ok9)
     fc = r9[r9["axis_indep"] == "First-cycle (no prior CRL)"]
     rf = r9[r9["axis_indep"] == "Prior-CRL refile"]
-    PROSE_RESID = {"first_cycle": (0.114, 20), "refile": (-0.142, 3)}  # quoted in docs
+    PROSE_RESID = {"first_cycle": (0.110, 18), "refile": (-0.325, 3)}  # quoted in docs (outcome_date anchor)
     check("FINDINGS residual prose matches code",
           abs(fc["resid"].mean() - PROSE_RESID["first_cycle"][0]) < 5e-4
           and len(fc) == PROSE_RESID["first_cycle"][1]

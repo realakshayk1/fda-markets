@@ -68,9 +68,10 @@ def _b(x):
 
 
 def _res_unix(row):
-    for k in ("closed_time", "end_date"):
+    # Anchor to the actual FDA action (outcome_date), matching process_markets.
+    for k in ("outcome_date", "closed_time", "end_date"):
         v = row.get(k)
-        if isinstance(v, str) and v:
+        if isinstance(v, str) and v and v.strip().lower() not in ("", "pending", "n/a", "nan", "none"):
             try:
                 return datetime.fromisoformat(v.replace("Z", "+00:00")).timestamp()
             except ValueError:

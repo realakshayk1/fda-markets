@@ -87,8 +87,17 @@ releases, FDA.gov, Endpoints, Fierce, BioPharma Dive, drugs.com, HCPLive, OncLiv
 ## 4. Computed metrics (`process_markets.py`)
 
 From each resolved market's **daily** price history, with resolution time taken
-from `closed_time` (fallback `end_date`). Prices are carried forward to the
-target instant.
+from **`outcome_date`** — the actual FDA action — falling back to `closed_time`
+then `end_date`. Prices are carried forward to the target instant. The
+`outcome_date` anchor matters because a market often keeps trading (price pinned
+near 0/1) for days or weeks after the FDA has acted, until its resolve-by window
+closes; anchoring to `closed_time` there would measure a *post-event* price and
+overstate the crowd's foresight (see LIMITATIONS §9).
+
+**`resolve_by_date`** records the contract's true settlement deadline, parsed
+from its resolution rules ("approval ... by [date]"). For these markets that is a
+uniform ~14-day grace past `end_date` (the expected PDUFA), so "approved by the
+date" tolerates a slip of up to two weeks.
 
 - `prob_7d`, `prob_3d`, `prob_1d` — Yes price at 7 / 3 / 1 days before resolution.
 - `correct_7d`, `correct_1d` — did the market's >50% side match the on-time outcome.

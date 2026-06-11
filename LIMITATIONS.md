@@ -73,14 +73,15 @@ the market date — so **Resolved No ≠ rejected.** Tracked separately as
   not on the market's timeline (`fig8`). Conclusions about "failure" must say
   *which* failure they mean.
 
-## 5. "Already priced" — the alpha caveat
+## 5. "Already priced" — the residual caveat
 
-A risk the price already reflects is not an edge. Residual = outcome − price 7d
-out (n=21 with a 7-day price, anchored to the actual FDA action): refiles
+A risk the price already reflects is not a mispricing. Residual = outcome − price
+7d out (n=21 with a 7-day price, anchored to the actual FDA action): refiles
 **−0.33 (n=3)**, first-cycle **+0.11 (n=18)** — no systematic, sign-stable
 mispricing, and the refile mean is one
-market (TLX250) deep (`fig9`). Any alpha claim must be made on the **residual**
-vs the market price, never on the raw outcome, and must be out-of-sample.
+market (TLX250) deep (`fig9`). Any mispricing claim must be made on the
+**residual** vs the market price, never on the raw outcome, and must be
+out-of-sample.
 
 ## 6. Price-series and metric caveats (inherited from methodology.md)
 

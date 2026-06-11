@@ -101,7 +101,7 @@ def main():
           f"(p={bsum['sign_test_p']}).")
     print(f"  Open edge: {F['open_edge']['n_scored']} scored, "
           f"{F['open_edge']['n_benchmark_NA']} N/A; max |gap| {F['open_edge']['max_abs_gap']}; "
-          f"{F['open_edge']['n_gap_over_0.10_and_depth_ok']} tradeable gaps > 0.10.")
+          f"{F['open_edge']['n_gap_over_0.10_and_depth_ok']} depth-supported gaps > 0.10.")
     print("\n  Wrote findings.json. No narrative selected — this is the raw evidence base.")
 
 

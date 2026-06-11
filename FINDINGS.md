@@ -1,6 +1,6 @@
 # FINDINGS — FDA prediction-market audit
 
-**Role:** skeptical quantitative referee, not author.
+**Purpose:** separate the conclusions the data supports from those it does not.
 **Snapshot:** `fda_markets_processed.csv`, data date 2026-06-09. 33 resolved
 drug-specific markets (thematic psychedelic market excluded), 11 open.
 **Reproduce:** `python audit.py` (recomputes every number below and asserts the
@@ -31,8 +31,9 @@ buckets — that part is demonstrable. (2) But de-leaking **removes the evidence
 for** a refile penalty without **establishing its absence**: 1/3 vs 20/30 is two
 under-powered cohorts whose CIs overlap ([6%,79%] vs [49%,81%]). The correct
 verdict is **indeterminate**, not "refiles are fine" and not "refiles fail" —
-the data cannot tell. There is **no tradeable alpha demonstrated** at this sample
-size; the defensible findings are weaker and mostly already priced (residual
+the data cannot tell. **No mispricing is demonstrated beyond what the price
+already reflects** at this sample size; the defensible findings are mostly
+already priced (residual
 test below).
 
 ---
@@ -55,21 +56,21 @@ of [0,1]); treat as a hypothesis, not a result.
 
 ## (ii) TEMPTING conclusions the data does NOT support (or overstates)
 
-Be exhaustive here — this is the referee's main job.
+Be exhaustive here — listing what the data does *not* support matters as much as listing what it does.
 
 | # | Tempting claim | Why it fails |
 |---|---|---|
 | U1 | **"CMC/manufacturing refiles approve on time only 12.5% (1/8)."** | **Look-ahead leakage.** 5 of the 8 had `prior_crl=no` — they are first-cycle CRLs/Delays sorted into a *refile* bucket *because the CMC CRL happened* (EYLEA-HD wasn't even a CRL — a Delay with `crl_reason_class` blank). The pre-identifiable rate is **1/3 = 33% [6%,79%], n=3.** The "12.5%" is not a forecastable base rate; it is the failure set describing itself. |
 | U2 | **"Clean first-cycle reviews approve on time 100% (18/18)."** | **Survivorship at the bucket boundary.** "Clean desk" is a *residual* category: any clean-looking drug that took a surprise CRL is reclassified into "Clinical/efficacy" or "CMC refile" and removed. So 18/18 is partly definitional. Even at face value it is **18/18 = 100%, Wilson 95% [82%, 100%]** (lower bound 0.824) — not "always." The pre-decision first-cycle rate that *keeps* the failures is **20/30 = 67% [49%,81%]** (this cohort is heterogeneous — see confound (d)). |
-| U3 | **"The market forgot its lesson — short the 3 open refiles at 0.72–0.77."** (the README's "alpha") | Fails four ways: (a) base rate is the contaminated 12.5%; the clean comparator is 1/3 = 33%, **n=3, CI [6%,79%]** — you cannot price an edge off that. (b) One of the "three open refiles," **Arcalyst, has `prior_crl=no`** — it is not a refile by the dataset's own flag. (c) The market price **is** the forecast; refiles' mean residual vs the 7-day price is **−0.33 (n=3)** — the market *over*-charged refile risk on average, the opposite of the thesis. (d) Each refile may have fixed its specific CMC issue; the data cannot distinguish that from base-rate skepticism. |
+| U3 | **"The market forgot its lesson — short the 3 open refiles at 0.72–0.77."** | Fails four ways: (a) base rate is the contaminated 12.5%; the clean comparator is 1/3 = 33%, **n=3, CI [6%,79%]** — too small to support a directional read. (b) One of the "three open refiles," **Arcalyst, has `prior_crl=no`** — it is not a refile by the dataset's own flag. (c) The market price **is** the forecast; refiles' mean residual vs the 7-day price is **−0.33 (n=3)** — the market *over*-charged refile risk on average, the opposite of the thesis. (d) Each refile may have fixed its specific CMC issue; the data cannot distinguish that from base-rate skepticism. |
 | U4 | **"`manufacturing_inspection_required=yes` predicts failure (1/8)."** | The 8 inspection-required rows are **identical** to the contaminated CMC bucket. The flag is collinear with the outcome and cannot be certified pre-knowable from the data (it may have been set *because* the CRL cited a 483/inspection). Promising lead, but **unverifiable here** — do not trade it. |
-| U5 | **"The risk gradient proves the market mis-prices regulatory risk → alpha."** | The gradient is mostly the leakage of U1–U2. After de-leaking, the only clean axis (prior_crl) has n=3 on the risky side. No mis-pricing is demonstrated *beyond what the price already encoded* (residual test, U3c). |
+| U5 | **"The risk gradient proves the market mis-prices regulatory risk."** | The gradient is mostly the leakage of U1–U2. After de-leaking, the only clean axis (prior_crl) has n=3 on the risky side. No mis-pricing is demonstrated *beyond what the price already encoded* (residual test, U3c). |
 | U6 | **"64% on-time is the FDA base rate."** | This is a **selection-biased sample** of *drugs that got a Polymarket market* in 2025–26 — skewed toward contested, refile-heavy, retail-interesting decisions. It is not the population FDA first-cycle rate (~80–87%). n=33. |
 | U7 | **"Single-order moves show manipulation."** | `single_order_move` is a thin-market signature, confirmed against `/trades` for a few names, but it shows *one wallet moved the price*, not intent or that the move was wrong. n is tiny; descriptive only. |
 | U8 | **Any per-cell rate stated as a bare percentage** (100%, 0%, 12.5%). | Forbidden without n + CI. Every n<5 cell (Oncology sNDA n=2, Clinical/efficacy n=2, Timeline bet n≤3, all `designations` cells) is **ANECDOTAL** and must be labelled so wherever used. |
 | U9 | **"`prior_crl=yes` is a clean ground-truth anchor."** | It is the *cleanest available* pre-decision signal, but still a **revisable hand-label**: TLX250's value was hindsight-**corrected** no→yes after researching a ~Nov-2024 first CRL (`crl_date` "approximate to month"); Tebipenem's `crl_date` is also approximate. The n=3 leakage-free refile set thus rests on 1 corrected + 1 approximate label. Treat the 1/3 as fragile, not authoritative. |
 | U10 | **Using Truqap / Camizestrant as clean first-cycle data points.** | Camizestrant resolved No via an **ODAC 6-3-against + PDUFA extension** (a substantive adverse-committee Delay, not a clean review); Truqap's enrichment flags an **INDICATION DISCREPANCY** — the market's breast-cancer referent may not match the only nearby FDA event (an unrelated mHSPC ODAC), so its referent is ambiguous. Both sit in the leakage-free first-cycle cohort and quietly drag 20/30; neither is a clean "first-cycle review." |
-| U11 | **"The benchmark finds tradeable edge on the open slate."** | It does not. After abstaining on the 2 timeline markets (benchmark has no pending-decision signal → would emit a false 0.84), the **largest depth-tradeable gap vs the base rate is ~0.10** (Zoryve), one name, well inside the benchmark's own out-of-sample error (it loses to the crowd, S7). The open gaps in `edge_open.csv` are **hypotheses with a depth flag**, not signals — every name sits within ±0.10 of the base rate. |
+| U11 | **"The benchmark identifies mispricing on the open slate."** | It does not. After abstaining on the 2 timeline markets (benchmark has no pending-decision signal → would emit a false 0.84), the **largest gap vs the base rate is ~0.10** (Zoryve), one name, well inside the benchmark's own out-of-sample error (it loses to the crowd, S7). The open gaps in `edge_open.csv` are **hypotheses**, not signals — every name sits within ±0.10 of the base rate. |
 
 ---
 
@@ -80,7 +81,7 @@ Be exhaustive here — this is the referee's main job.
   **−0.33 (n=3)**; first-cycle **+0.11 (n=18)**. Neither is a systematic,
   sign-stable edge — the refile mean is one
   market (TLX250) deep; the market had largely charged the gradient already
-  (fig9). A gradient the price already reflects is not alpha.
+  (fig9). A gradient the price already reflects is not a mispricing.
 - **(b) Selection / survivorship.** Markets exist only for decisions retail
   found interesting — contested refiles and brand-name drugs are
   over-represented; routine approvals under-represented. This *inflates* the
@@ -113,7 +114,7 @@ plotted aggregation equals an independent recompute.
 | **fig6_leakage_free_gradient** | Does the gradient survive removing look-ahead? | 33 | **defensible — the honest version of fig1** |
 | **fig7_leakage_artifact** | How much of "12.5%" is leakage? | 8 vs 3 | **defensible** |
 | **fig8_bydate_vs_ever** | Is "No" rejection or just lateness? | 33 | **defensible** |
-| **fig9_residual_vs_price** | Was the risk already priced (alpha test)? | 21 | **defensible — descriptive, n small** |
+| **fig9_residual_vs_price** | Was the risk already priced? | 21 | **defensible — descriptive, n small** |
 | **fig10_accuracy** | Was the crowd right at 7d/1d? (Red-Tilt-style, anchored to the FDA action) | 21–24 | defensible |
 | **fig11_outcome_decomp** | How did "No" markets actually resolve (CRL vs Delay)? | 33 | defensible |
 | **fig12_edge_map** | Open slate vs the cited base rate, depth-gated | 8 (+2 N/A) | defensible — gaps are hypotheses |
@@ -121,19 +122,23 @@ plotted aggregation equals an independent recompute.
 
 **Refused figures** (would imply false precision): a per-`designations` approval
 chart (every cell n≤4), a per-`application_type` × `risk_category` heatmap (cells
-of 0–2), and any "predicted alpha" P&L curve (no out-of-sample, n=3 on the
+of 0–2), and any projected-return / P&L curve (no out-of-sample, n=3 on the
 signal side). Reason in each case: n too small to plot a rate without misleading.
 
 ---
 
-## On the request to "generate alpha"
+## Defensible uses and next steps
 
-Stated plainly, as a referee: **this dataset does not support a tradeable edge.**
-The headline that looks like alpha is a look-ahead artifact (U1–U3), and the one
-clean pre-decision signal (prior_crl) has n=3. The honest, defensible uses are:
-(1) a calibration/After-the-fact scorecard of the market (S1, S2), and (2) a
-**hypothesis** — refiles and inspection-gated reviews *may* underperform their
-price — that needs a leakage-free, out-of-sample test on a larger forward sample
-before any capital. The single most promising lead to pursue is
-`manufacturing_inspection_required`, **only after** verifying each value was set
-from pre-decision information (FDA inspection scheduling), not from the CRL text.
+What this dataset supports, stated objectively:
+
+1. **A calibration scorecard of the market** (S1, S2): how well the prices matched
+   outcomes, and where they systematically missed.
+2. **One hypothesis worth testing:** refiles and inspection-gated reviews *may*
+   resolve below their price. This is not established here — the only clean
+   pre-decision signal (`prior_crl`) has n=3, and the apparent risk gradient is
+   look-ahead-contaminated (U1–U2). It needs a leakage-free, out-of-sample test on
+   a larger forward sample.
+
+The most promising single lead is `manufacturing_inspection_required`, and only
+after confirming each value was recorded from pre-decision information (FDA
+inspection scheduling), not inferred from the CRL text.

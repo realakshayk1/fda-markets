@@ -30,7 +30,7 @@ Validity (new — leakage-aware, every rate with a Wilson 95% CI):
                                      leakage-free 1/3, both with CIs
     fig8_bydate_vs_ever.png          on-time-by-date vs approved-ever per axis
     fig9_residual_vs_price.png       outcome − price the market charged 7d out
-                                     (was the risk already priced? = alpha test)
+                                     (was the risk already priced?)
 """
 
 import os
@@ -326,8 +326,8 @@ def fig9_residual_vs_price(df):
     """Outcome − price charged 7d out. Tests whether the risk was already priced.
 
     A negative bar = the market charged MORE than the outcome delivered (it
-    already 'knew'); positive = the market under-charged (potential edge). Alpha
-    requires a SYSTEMATIC sign per cohort, not noise. n is tiny — descriptive.
+    already 'knew'); positive = the market under-charged. A mispricing would
+    require a SYSTEMATIC sign per cohort, not noise. n is tiny — descriptive.
     """
     resolved = df[df["is_closed"] & df["prob_7d"].notna()].copy()
     resolved["axis"] = resolved.apply(A.preknowable_axis, axis=1)
@@ -341,7 +341,7 @@ def fig9_residual_vs_price(df):
     ax.set_yticklabels([d[:30] for d in resolved["drug"]], fontsize=7.5)
     ax.set_xlabel("outcome (1/0) − Yes price 7d out   (>0: market under-charged · <0: over-charged)")
     ax.set_title("Was the risk already priced? Residual vs the ~7-day price\n"
-                 "(per-cohort mean must be systematic to be alpha — see annotation)")
+                 "(a per-cohort mean must be systematic to indicate mispricing — see annotation)")
     means = {}
     for a in AXIS_COLORS:
         sub = resolved[resolved["axis"] == a]

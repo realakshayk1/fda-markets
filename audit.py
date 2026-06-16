@@ -169,9 +169,17 @@ def main():
     # open markets => outcome pending; resolved => not pending
     proc["is_closed"] = proc["closed"].str.lower() == "true"
     emap = {r["slug"]: r for r in edata}
+    # An open contract is normally still pending. The one allowed exception is a
+    # market the FDA has already acted on but whose Polymarket contract has not
+    # yet settled (e.g. an approval days before the formal PDUFA/UMA date): there
+    # the regulatory outcome is known and carries a real outcome_date, so the
+    # enrichment records it (methodology anchors to the FDA action, not settlement).
+    def _fda_acted(s):
+        od = emap.get(s, {}).get("outcome_date", "")
+        return od not in (None, "", "pending", "n/a")
     bad_open = [s for s in proc.loc[~proc["is_closed"], "slug"]
-                if emap.get(s, {}).get("outcome") not in ("pending",)]
-    check("open markets have outcome=pending", not bad_open, str(bad_open))
+                if emap.get(s, {}).get("outcome") not in ("pending",) and not _fda_acted(s)]
+    check("open markets are pending unless the FDA already acted", not bad_open, str(bad_open))
 
     print("\n== 4. Resolution consistency (price vs flag) ==")
     bad_res = []
@@ -271,15 +279,15 @@ def main():
     crl_n = (drug_res["outcome"] == "CRL").sum()
     cmc_crl = sum(1 for r in edata if r.get("outcome") == "CRL"
                   and r.get("crl_reason_class") == "CMC/manufacturing")
-    check("data: 6 of the resolved CRLs are CMC/manufacturing", cmc_crl == 6,
+    check("data: 7 of the resolved CRLs are CMC/manufacturing", cmc_crl == 7,
           f"data CMC CRLs={cmc_crl}")
     cmc_res = drug_res[drug_res["risk_category"] == "CMC/manufacturing refile"]
     cmc_yes = (cmc_res["resolved_yes"].str.lower() == "true").sum()
-    check("data: contaminated CMC-refile cohort is 1/8 on-time", cmc_yes == 1 and len(cmc_res) == 8,
+    check("data: contaminated CMC-refile cohort is 1/9 on-time", cmc_yes == 1 and len(cmc_res) == 9,
           f"CMC refile resolved on-time={cmc_yes}/{len(cmc_res)}")
     lim = open("LIMITATIONS.md", encoding="utf-8").read().lower()
-    check("LIMITATIONS.md flags the 1/8 cohort as look-ahead-contaminated",
-          ("1/8" in lim or "1 / 8" in lim) and "look-ahead" in lim)
+    check("LIMITATIONS.md flags the 1/9 cohort as look-ahead-contaminated",
+          ("1/9" in lim or "1 / 9" in lim) and "look-ahead" in lim)
     readme = open("README.md", encoding="utf-8").read()
     check("README points to FINDINGS/LIMITATIONS instead of stating conclusions",
           "FINDINGS.md" in readme and "LIMITATIONS.md" in readme and "1 / 8 = 12.5%" not in readme)
@@ -344,7 +352,7 @@ def main():
         lambda v: "Prior-CRL refile" if v == "yes" else "First-cycle (no prior CRL)")
     EXPECTED_CI = {  # independent literals: (k, n, point, lo, hi)
         "First-cycle (no prior CRL)": (20, 30, 0.666667, 0.487797, 0.807697),
-        "Prior-CRL refile": (1, 3, 0.333333, 0.061490, 0.792345),
+        "Prior-CRL refile": (1, 4, 0.25, 0.045586, 0.699364),
     }
     ok6 = True
     for row in p6:

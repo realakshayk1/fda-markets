@@ -11,18 +11,18 @@ Companion to `FINDINGS.md`. All numbers reproduce via `python audit.py`.
 the market's **outcome** — so those buckets are partly assigned from what
 happened.
 
-- **7 of 33** resolved rows are OUTCOME-DERIVED in `risk_category`
+- **7 of 34** resolved rows are OUTCOME-DERIVED in `risk_category`
   (`audit.py §10` prints the per-row table): OLC, UX111, EYLEA-HD, GTx-104,
   CTx-1301 (→ "CMC refile" with `prior_crl=no`), Deramiocel, Vatiquinone
   (→ "Clinical/efficacy" with `prior_crl=no`).
-- Consequence: the **"CMC refile 1/8 = 12.5%"** headline is contaminated. The
+- Consequence: the **"CMC refile 1/9 = 11.1%"** headline is contaminated. The
   cleanest pre-knowable refile flag is `prior_crl=yes`, giving
-  **1/3 = 33%, Wilson 95% [6%, 79%]** (`fig7`).
+  **1/4 = 25%, Wilson 95% [5%, 70%]** (`fig7`).
 - **"Clean desk 18/18"** is the mirror image: a *residual* bucket that loses any
   clean-looking drug which later failed (it gets reclassified into a failure
   bucket). 100% is therefore partly definitional; the leakage-free first-cycle
   rate that keeps the failures is **20/30 = 67% [49%,81%]** (`fig6`).
-- **De-leaking does not flip the finding — it dissolves it.** 1/3 (refile) vs
+- **De-leaking does not flip the finding — it dissolves it.** 1/4 (refile) vs
   20/30 (first-cycle) are two under-powered cohorts with overlapping CIs. The
   honest read is *indeterminate*, not "refiles are fine" and not "refiles fail."
 - **The leakage-free cohort is itself imperfect.** `prior_crl` is the *one* field
@@ -43,11 +43,11 @@ on-chart leakage banner.
 
 ## 2. Sample size (everything is small)
 
-- 33 resolved drug markets; 11 open. Markets became common only in 2025.
-- The risk-bearing cohorts are tiny: prior-CRL refiles **n=3**, Oncology sNDA
+- 34 resolved drug markets; 9 open. Markets became common only in 2025.
+- The risk-bearing cohorts are tiny: prior-CRL refiles **n=4**, Oncology sNDA
   **n=2**, Clinical/efficacy **n=2**, structural Timeline bets **n≤3**.
 - **No rate may be stated without n and a Wilson 95% CI; n<5 is ANECDOTAL.**
-  At n=3, the refile CI is [6%,79%] — it excludes essentially nothing.
+  At n=4, the refile CI is [5%,70%] — it excludes essentially nothing.
 - No multiple-comparison correction is applied; with this many small buckets,
   some "gradient" is expected by chance alone.
 
@@ -57,7 +57,7 @@ A Polymarket market exists only for decisions that drew retail interest —
 contested refiles, brand-name drugs, binary catalysts. Routine first-cycle
 approvals are under-sampled. So:
 
-- The slate's **64% on-time rate is not the FDA base rate** (~80–87%); it is
+- The slate's **62% on-time rate is not the FDA base rate** (~80–87%); it is
   biased low by the kinds of decisions that get markets.
 - Cross-cohort comparisons inherit the bias: the refile cohort is not a random
   sample of refiles, it is the *interesting* ones.
@@ -68,8 +68,8 @@ These contracts resolve **No** on a CRL, a withdrawal, **or a PDUFA delay** past
 the market date — so **Resolved No ≠ rejected.** Tracked separately as
 `resolved_yes` (on-time) vs `eventually_approved` (ever).
 
-- All resolved: **21/33 on time vs 22/33 ever.**
-- CMC bucket: **1/8 on time but 2/8 ever** — CMC issues are often curable, just
+- All resolved: **21/34 on time vs 22/34 ever.**
+- CMC bucket: **1/9 on time but 2/9 ever** — CMC issues are often curable, just
   not on the market's timeline (`fig8`). Conclusions about "failure" must say
   *which* failure they mean.
 
@@ -88,9 +88,9 @@ out-of-sample.
 - **Daily fidelity:** intraday blindsides are invisible in the daily series;
   `surprise` is engineered around this and a same-day collapse appears only as a
   confidently-wrong final price.
-- **Sparse histories:** 3 resolved markets have a single daily point; 10 lack a
+- **Sparse histories:** 3 resolved markets have a single daily point; 13 lack a
   point a full 7 days out — their `prob_7d`/`prob_1d` are legitimately blank, so
-  calibration n (23) < resolved n (33).
+  calibration n (25) < resolved n (34).
 - **Depth proxies:** `top_holder_pct`/`n_top_holders` come from a capped
   top-holders leaderboard (≤200) and `n_trades` from the ≤1000 most-recent
   trades — concentration is directional, exact only when the full set fits.
@@ -100,7 +100,7 @@ out-of-sample.
 ## 7. Enrichment is human-labelled, point-in-time
 
 Regulatory fields are web-researched with a cited `source_url` each, but they are
-manual labels: subject to labelling error, point-in-time as of 2026-06-09, and —
+manual labels: subject to labelling error, point-in-time as of 2026-06-15, and —
 critically for §1 — some (`risk_category`, `crl_reason_class`,
 `manufacturing_inspection_required`) were assigned with knowledge of the outcome.
 **`prior_crl` is not exempt:** it anchors the leakage-free analysis, yet TLX250's
@@ -116,7 +116,7 @@ both sit in the first-cycle cohort. `crl_date` for two refiles is approximate
 `benchmark.py` turns cited FDA *population* rates into a fair value. Honest
 limits:
 
-- **It loses to the crowd** (crowd Brier 0.123 vs benchmark 0.247, S7), so a
+- **It loses to the crowd** (crowd Brier 0.137 vs benchmark 0.258, S7), so a
   gap vs the benchmark is a *hypothesis*, never a signal. Treat the benchmark as
   "what a transparent base rate would say," not "what's true."
 - **Every coefficient is cited or derived — none is a guess.** Base rate (0.84)
@@ -145,13 +145,20 @@ that earlier versions did not:
   Truqap 16, EYLEA HD 12). The market keeps trading (price pinned near 0 or 1)
   until its resolve-by window closes. The before-resolution prices
   (`prob_7d`/`prob_3d`/`prob_1d`) are now anchored to **`outcome_date`**, so they
-  measure the price *before the real news*, not after. This is a genuine
+  measure the price *before the real news*, not after. As of this snapshot
+  **Welireg** is live in exactly this state: the FDA approved it 2026-06-12, but
+  its contract had not formally settled (still ~0.99, not 1.0) by 2026-06-15, so
+  its regulatory `outcome` is recorded as Approved while it sits *outside* the
+  settled cohort (the metrics count 34 settled drug markets; Welireg joins on the
+  next refresh after it settles). This is a genuine
   foresight measure; the earlier `closed_time` anchor flattered the crowd
   (e.g. EYLEA HD looked like a confident, correct "No" at 0.015 when, the day
   before the delay was announced, it was actually at 0.55 and *wrong*). Re-anchoring
-  moved the headline accuracy from 24/30 to 18/24 at 1 day and the Brier from
-  0.136 to 0.156. Markets with no genuine pre-event price (UX111, Vepdegestrant)
+  moved the headline accuracy from 24/30 to 18/25 at 1 day and the Brier to
+  0.174. Markets with no genuine pre-event price (UX111, Vepdegestrant)
   correctly drop to blank rather than count as easy "correct" calls.
+  Oclaiz (82% Yes the day before its CRL) is the newest confident miss, which is
+  what nudged the 1-day Brier up.
 - **The resolve-by date is not `end_date`.** Each contract's rules give a uniform
   **~14-day grace** past the expected PDUFA: `end_date` is the expected action
   date, but the market resolves Yes if the approval lands by `end_date + 14`

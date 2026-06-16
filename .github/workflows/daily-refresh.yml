@@ -1,15 +1,16 @@
 name: Daily data refresh
 
-# Re-runs the full pipeline against the live Polymarket APIs once a day, then
-# commits any changed data/figures. This is what makes the repo "re-runnable
-# through git": GitHub runs it on a schedule, and the refreshed dataset lands as
-# a commit. You can also trigger it by hand from the Actions tab.
+# Re-runs the pipeline against the live Polymarket APIs once a day and commits any
+# changed data/figures. This is what makes the repo "re-runnable through git".
 #
-# CAVEAT — the regulatory-enrichment layer is HAND-curated. This job refreshes
-# prices, metrics, figures, and the benchmark/edge outputs automatically, but a
-# newly-resolved market's regulatory `outcome` (Approved / CRL / Delay) in
-# enrichment_data.json still needs a manual update with a cited source. The job
-# will flag any market whose live close-state changed since the last commit.
+# Two paths, because the regulatory-enrichment layer is HAND-curated:
+#   * No newly-resolved/new market  -> refresh prices + figures, run the audit
+#     gate, and commit automatically.
+#   * A market changed close-state (resolved) or a brand-new market appeared
+#     -> the new outcome needs a cited enrichment entry AND the frozen audit
+#     literals need updating, neither of which the job can do. It does NOT
+#     attempt a half-enriched auto-commit (that would corrupt the dataset and
+#     fail the gate); instead it opens a tracking issue and exits green.
 
 on:
   schedule:
@@ -18,6 +19,11 @@ on:
 
 permissions:
   contents: write
+  issues: write
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
 
 jobs:
   refresh:
@@ -32,26 +38,57 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Flag any newly-resolved markets (manual enrichment may be needed)
+      - name: Fetch live markets and detect contracts needing manual enrichment
+        id: flag
         run: |
           python fetch_markets.py
           python - <<'PY'
-          import pandas as pd, subprocess
+          import io, os, subprocess
+          import pandas as pd
+
           new = pd.read_csv("fda_markets_raw.csv", dtype=str)
-          old_csv = subprocess.run(["git","show","HEAD:fda_markets_raw.csv"],
-                                   capture_output=True, text=True).stdout
-          import io; old = pd.read_csv(io.StringIO(old_csv), dtype=str)
-          om = {r["slug"]: r for _, r in old.iterrows()}
-          flips = [r["slug"] for _, r in new.iterrows()
-                   if str(r.get("closed")).lower() != str(om.get(r["slug"], {}).get("closed", "")).lower()]
-          if flips:
-              print("::warning::Markets changed close-state since last commit; "
-                    "update enrichment_data.json outcomes with a cited source: " + ", ".join(flips))
+          # Baseline is the TRACKED, committed dataset. fda_markets_raw.csv is
+          # gitignored, so diffing against `git show HEAD:fda_markets_raw.csv`
+          # (the old bug) always read an empty file and crashed the job.
+          old_csv = subprocess.run(
+              ["git", "show", "HEAD:fda_markets_processed.csv"],
+              capture_output=True, text=True,
+              encoding="utf-8", errors="replace").stdout
+          old = (pd.read_csv(io.StringIO(old_csv), dtype=str)
+                 if old_csv.strip() else new.iloc[0:0])
+          old_closed = {r["slug"]: str(r.get("closed")).lower()
+                        for _, r in old.iterrows()}
+
+          resolved = [r["slug"] for _, r in new.iterrows()
+                      if r["slug"] in old_closed
+                      and str(r.get("closed")).lower() != old_closed[r["slug"]]]
+          brand_new = sorted(set(new["slug"]) - set(old_closed))
+          needs = sorted(set(resolved) | set(brand_new))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"needs={'true' if needs else 'false'}\n")
+              fh.write("slugs=" + ",".join(needs) + "\n")
+
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if needs:
+              lines = "\n".join(f"- `{s}`" for s in needs)
+              msg = ("### ⚠️ Manual enrichment needed\n\n"
+                     "These contracts resolved or are new since the last commit. "
+                     "Update `enrichment_data.json` (outcome + cited `source_url`) "
+                     "and the frozen literals in `audit.py`, run `python audit.py` "
+                     f"until green, then commit:\n\n{lines}\n")
+              print("::warning::Manual enrichment needed: " + ", ".join(needs))
           else:
+              msg = "### ✅ No resolutions or new markets — price/figure refresh only.\n"
               print("No close-state changes since last commit.")
+          if summary:
+              with open(summary, "a") as fh:
+                  fh.write(msg)
           PY
 
+      # ---- price/figure-only refresh path (audit literals stay valid) ----
       - name: Run the pipeline
+        if: steps.flag.outputs.needs == 'false'
         run: |
           python build_enrichment.py
           python enrich_markets.py
@@ -62,12 +99,14 @@ jobs:
           python insights.py
           python snapshot.py
 
-      - name: Validity + reproducibility gate (must pass before committing)
+      - name: Reproducibility + validity gate (must pass before committing)
+        if: steps.flag.outputs.needs == 'false'
         run: |
           python audit.py | tee /tmp/audit.log
           grep -q "checks failed: 0" /tmp/audit.log
 
       - name: Commit refreshed data
+        if: steps.flag.outputs.needs == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -78,3 +117,33 @@ jobs:
           else
             echo "No changes to commit."
           fi
+
+      # ---- manual-enrichment path: notify, do not commit, stay green ----
+      - name: Open a tracking issue when manual enrichment is needed
+        if: steps.flag.outputs.needs == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLUGS: ${{ steps.flag.outputs.slugs }}
+        run: |
+          gh label create data-refresh --color FBCA04 \
+            --description "Cron flagged a market needing manual enrichment" 2>/dev/null || true
+          open_count=$(gh issue list --label data-refresh --state open \
+            --json number --jq 'length' 2>/dev/null || echo 0)
+          if [ "${open_count:-0}" != "0" ]; then
+            echo "A data-refresh issue is already open; not filing a duplicate."
+            exit 0
+          fi
+          {
+            echo "The daily refresh found contract(s) that resolved or are new and"
+            echo "need a hand-curated outcome before the dataset can be re-committed:"
+            echo
+            for s in ${SLUGS//,/ }; do echo "- \`$s\`"; done
+            echo
+            echo "Steps: update \`enrichment_data.json\` (outcome + cited \`source_url\`),"
+            echo "update the frozen literals in \`audit.py\`, run \`python audit.py\`"
+            echo "until \`checks failed: 0\`, then commit and push."
+          } > /tmp/issue_body.md
+          gh issue create \
+            --title "Manual enrichment needed ($(date -u +%Y-%m-%d))" \
+            --body-file /tmp/issue_body.md \
+            --label data-refresh

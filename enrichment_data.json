@@ -116,13 +116,13 @@
 "inspection_location": "unknown",
 "adcom_scheduled": "no",
 "risk_category": "Oncology sNDA",
-"outcome": "pending",
-"outcome_date": "pending",
-"outcome_reason": "Open market; PDUFA 2026-06-19 (matches market), based on Ph3 LITESPARK-022.",
-"eventually_approved": "pending",
-"eventually_approved_date": "pending",
-"source_url": "https://www.merck.com/news/keytruda-pembrolizumab-plus-welireg-belzutifan-given-as-adjuvant-therapy-reduced-the-risk-of-disease-recurrence-or-death-by-28-compared-to-keytruda-monotherapy-in-certain-patients-with/; https://www.urologytimes.com/view/fda-grants-priority-review-to-adjuvant-belzutifan-plus-pembrolizumab-for-ccrcc",
-"enrichment_notes": "Combined Welireg sNDA + Keytruda sBLAs, shared PDUFA 2026-06-19. LITESPARK-022 at ASCO GU 2026."
+"outcome": "Approved",
+"outcome_date": "2026-06-12",
+"outcome_reason": "FDA approved belzutifan (Welireg) with pembrolizumab (Keytruda)/Keytruda Qlex for adjuvant ccRCC on 2026-06-12, ahead of the 2026-06-19 PDUFA; based on Ph3 LITESPARK-022. Clean first-cycle oncology expansion of an already-approved drug.",
+"eventually_approved": "yes",
+"eventually_approved_date": "2026-06-12",
+"source_url": "https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-belzutifan-pembrolizumab-adjuvant-treatment-renal-cell-carcinoma; https://www.merck.com/news/fda-approves-keytruda-pembrolizumab-and-keytruda-qlex-pembrolizumab-and-berahyaluronidase-alfa-pmph-each-with-welireg-belzutifan-for-adjuvant-treatment-of-certain-patients/",
+"enrichment_notes": "Combined Welireg sNDA + Keytruda sBLAs, shared PDUFA 2026-06-19. LITESPARK-022 at ASCO GU 2026. Resolved Yes: FDA approval 2026-06-12, ~7 days early."
 },
 {
 "slug": "fda-approves-arvinas-vepdegestrant-06-05-2026",
@@ -966,13 +966,13 @@
 "inspection_location": "foreign",
 "adcom_scheduled": "no",
 "risk_category": "CMC/manufacturing refile",
-"outcome": "pending",
-"outcome_date": "pending",
-"outcome_reason": "PDUFA 2026-06-10 (one day after today); no FDA action yet.",
+"outcome": "CRL",
+"outcome_date": "2026-06-10",
+"outcome_reason": "FDA issued a CRL on 2026-06-10 — a second manufacturing-related rejection tied to a third-party manufacturer's Sept 2024 cGMP inspection; FDA also recommended a labeling change to the oxygen-absorber packaging. Not related to clinical efficacy or safety. Reinspection may be required.",
 "eventually_approved": "pending",
 "eventually_approved_date": "pending",
-"source_url": "https://www.camurus.com/media/press-releases/2026/camurus-announces-fda-acceptance-of-nda-resubmission-for-oclaiz-for-the-treatment-of-acromegaly/; https://www.camurus.com/media/press-releases/2024/camurus-provides-regulatory-update-on-the-us-nda-for-cam2029-in-acromegaly/",
-"enrichment_notes": "Original NDA CRL 2024-10-22 tied SOLELY to cGMP inspection deficiencies at a foreign third-party manufacturer. Resubmitted Dec 2025; PDUFA 2026-06-10. Classic CMC refile."
+"source_url": "https://www.camurus.com/media/press-releases/2026/camurus-provides-regulatory-update-on-the-us-nda-for-cam2029-oclaiz-in-acromegaly/; https://nordiclifescience.org/camurus-receives-fda-setback-for-cam2029-in-us-acromegaly-review/",
+"enrichment_notes": "Original NDA CRL 2024-10-22 tied SOLELY to cGMP inspection deficiencies at a foreign third-party manufacturer. Resubmitted Dec 2025; PDUFA 2026-06-10. Classic CMC refile. Resolved No: SECOND manufacturing CRL on 2026-06-10, same third-party plant, drug itself never at issue."
 },
 {
 "slug": "fda-approves-daraxonrasib-this-year",

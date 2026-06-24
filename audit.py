@@ -351,8 +351,8 @@ def main():
     rdf["axis_indep"] = rdf["prior_crl"].astype(str).str.lower().map(
         lambda v: "Prior-CRL refile" if v == "yes" else "First-cycle (no prior CRL)")
     EXPECTED_CI = {  # independent literals: (k, n, point, lo, hi)
-        "First-cycle (no prior CRL)": (20, 30, 0.666667, 0.487797, 0.807697),
-        "Prior-CRL refile": (1, 4, 0.25, 0.045586, 0.699364),
+        "First-cycle (no prior CRL)": (21, 31, 0.677419, 0.501407, 0.814308),
+        "Prior-CRL refile": (2, 5, 0.4, 0.117618, 0.76928),
     }
     ok6 = True
     for row in p6:
@@ -389,7 +389,7 @@ def main():
     check("fig9 residual means per axis == independent recompute", ok9)
     fc = r9[r9["axis_indep"] == "First-cycle (no prior CRL)"]
     rf = r9[r9["axis_indep"] == "Prior-CRL refile"]
-    PROSE_RESID = {"first_cycle": (0.110, 18), "refile": (-0.325, 3)}  # quoted in docs (outcome_date anchor)
+    PROSE_RESID = {"first_cycle": (0.121, 19), "refile": (-0.175, 4)}  # quoted in docs (outcome_date anchor)
     check("FINDINGS residual prose matches code",
           abs(fc["resid"].mean() - PROSE_RESID["first_cycle"][0]) < 5e-4
           and len(fc) == PROSE_RESID["first_cycle"][1]

@@ -691,13 +691,13 @@
 "inspection_location": "unknown",
 "adcom_scheduled": "no",
 "risk_category": "Clinical/efficacy",
-"outcome": "pending",
-"outcome_date": "pending",
-"outcome_reason": "Resubmitted NDA under review; PDUFA 2026-06-18; no decision as of 2026-06-09.",
-"eventually_approved": "pending",
-"eventually_approved_date": "pending",
-"source_url": "https://www.gsk.com/en-gb/media/press-releases/positive-pivot-po-phase-iii-data-show-tebipenem-hbr-s-potential-as-the-first-oral-carbapenem-antibiotic-for-patients-with-complicated-urinary-tract-infections-cutis/; https://www.globenewswire.com/news-release/2026/05/13/3294434/0/en/spero-therapeutics-announces-first-quarter-2026-operating-results-and-provides-business-update.html",
-"enrichment_notes": "PRIOR CRL June 2022 (Spero), trial-participant classification in ADAPT-PO (clinical/efficacy). New PIVOT-PO Ph3 supports resubmission (Dec 2025). crl_date approximate."
+"outcome": "Approved",
+"outcome_date": "2026-06-17",
+"outcome_reason": "FDA approved 2026-06-17 as Utebzi (tebipenem pivoxil) for complicated UTI incl. pyelonephritis — first oral carbapenem in the US. On time vs the 2026-06-18 PDUFA; resolved Yes. NDA resubmitted Dec 2025 after the June 2022 efficacy CRL.",
+"eventually_approved": "yes",
+"eventually_approved_date": "2026-06-17",
+"source_url": "https://us.gsk.com/en-us/media/press-releases/utebzi-tebipenem-pivoxil-approved-in-the-us-for-adults-with-complicated-urinary-tract-infections-cutis/; https://www.globenewswire.com/news-release/2026/06/17/3313706/0/en/Utebzi-tebipenem-pivoxil-approved-in-the-US-for-adults-with-complicated-urinary-tract-infections-cUTIs.html; https://www.gsk.com/en-gb/media/press-releases/positive-pivot-po-phase-iii-data-show-tebipenem-hbr-s-potential-as-the-first-oral-carbapenem-antibiotic-for-patients-with-complicated-urinary-tract-infections-cutis/",
+"enrichment_notes": "PRIOR CRL June 2022 (Spero), trial-participant classification in ADAPT-PO (clinical/efficacy). New PIVOT-PO Ph3 supports resubmission (Dec 2025). crl_date approximate. Approved 2026-06-17 as Utebzi — on-time Yes (the prior-cycle efficacy CRL was cleared by the new Phase 3)."
 },
 {
 "slug": "fda-approves-donidalorsen-for-hereditary-angioedema-by-august-31",

@@ -173,13 +173,13 @@ force a re-pull. If you hit rate-limit errors on a cold run, add or raise the
 
 ## Current Dataset
 
-As of the 2026-06-15 snapshot, `fda_markets_processed.csv` contains 44 markets:
+As of the 2026-06-24 snapshot, `fda_markets_processed.csv` contains 44 markets:
 
-- 34 resolved drug-approval markets, 9 open, plus 1 thematic market (excluded from the base rate).
-- Of the 34 resolved: 21 resolved Yes, 13 resolved No (9 CRLs, 4 PDUFA delays).
-- Welireg was FDA-approved 2026-06-12 but its Polymarket contract had not formally settled by the snapshot, so it is recorded `outcome=Approved` in enrichment yet sits among the 9 open by market state and outside the 34 settled-cohort metrics (see LIMITATIONS §9).
-- Total volume across all 44 markets: ~$908K. (These are thin markets; treat per-market liquidity accordingly.)
-- A daily price series for all 44 markets; a 10-min series for 28 sharp movers.
+- 36 resolved drug-approval markets, 7 open, plus 1 thematic market (excluded from the base rate).
+- Of the 36 resolved: 23 resolved Yes, 13 resolved No (9 CRLs, 4 PDUFA delays).
+- Tebipenem (approved 2026-06-17, Utebzi) and Welireg (approved 2026-06-12) both settled Yes since the prior snapshot and are now inside the 36-market settled cohort (see LIMITATIONS §9).
+- Total volume across all 44 markets: ~$909K. (These are thin markets; treat per-market liquidity accordingly.)
+- A daily price series for all 44 markets; a 10-min series for 29 sharp movers.
 
 Markets resolve continuously, so re-running picks up newly resolved contracts and
 updated prices.

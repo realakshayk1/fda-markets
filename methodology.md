@@ -161,9 +161,9 @@ slate — see the risk-category breakdown.
 ## 6. Caveats
 
 - **Sample is young and small.** Individual FDA drug-approval markets only became
-  common in 2025; the resolved set here is 34 drug-specific contracts (2025–2026).
+  common in 2025; the resolved set here is 36 drug-specific contracts (2025–2026).
   Treat all rates as directional, not statistically powered.
-- **Survey snapshot.** Prices/resolutions are as of 2026-06-15. Re-running updates
+- **Survey snapshot.** Prices/resolutions are as of 2026-06-24. Re-running updates
   everything.
 - **Daily-fidelity limitation.** Intra-day blindsides are invisible in the daily
   series; `surprise` is engineered around this (§4).
